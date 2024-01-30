@@ -19,7 +19,7 @@ logging.basicConfig(
 )
 
 console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
+console_handler.setLevel(logging.DEBUG)
 
 # Create a formatter and add it to the handler
 console_formatter = logging.Formatter(format_log)

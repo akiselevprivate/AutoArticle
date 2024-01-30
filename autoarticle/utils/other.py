@@ -1,6 +1,7 @@
 import json
 import uuid as uuid_pkg
 from unidecode import unidecode
+import markdown as markdown_pkg
 import re
 
 
@@ -38,3 +39,28 @@ def replace_urls_in_markdown(input_string, new_url):
     replaced_string = re.sub(pattern, r"[\1]({})".format(new_url), input_string)
 
     return replaced_string
+
+
+def markdown_to_html(markdown_str: str):
+    html = markdown_pkg.markdown(markdown_str)
+    return html
+
+
+def remove_title_from_markdown(markdown_str: str):
+    lines = markdown_str.split("\n")
+    if lines[0].startswith("#"):
+        del lines[0]
+
+    result = "\n".join(lines)
+    return result
+
+
+def remove_first_h2_markdown(markdown_str: str):
+    lines = markdown_str.split("\n")
+    if lines[0].startswith("##"):
+        del lines[0]
+
+    result = "\n".join(lines)
+    return result
+
+

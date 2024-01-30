@@ -15,7 +15,7 @@ class Action(BaseModel):
     id = UUIDField(primary_key=True, default=uuid_pkg.uuid4)
     action_type = TextField()  # create, manage, upload
     created_at = DateTimeField(default=datetime.datetime.utcnow())
-    is_deleted = BooleanField(default=False)
+    action_deleted = BooleanField(default=False)
     settings = TextField()
 
     title_used_tokens = IntegerField(null=True)
@@ -31,17 +31,21 @@ class Article(BaseModel):
 
     title = TextField(unique=True)
     url_ending = TextField(unique=True)
-    alternative_title = TextField()
+    # alternative_title = TextField()
     outline_json = TextField(null=True)
-    tags_json = TextField(null=True)
+    # tags_json = TextField(null=True)
     categories_json = TextField(null=True)
     sections_list_json = TextField(null=True)
+    faq_json = TextField(null=True)
+    excerpt = TextField(null=True)
 
     is_complete = BooleanField(default=False)
     is_succesful = BooleanField(null=True)
     is_published = BooleanField(default=False)
+    article_deleted = BooleanField(default=False)
 
-    full_article_markdown = TextField(null=True)
+    # full_article_markdown = TextField(null=True)
+    # html_converted_markdown = TextField(null=True)
 
 
 class ArticleLink(BaseModel):

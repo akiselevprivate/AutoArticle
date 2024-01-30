@@ -2,3 +2,6 @@ env
 .env
 .DS_Store
 prompts
+logs
+db.sqlite
+future.md
