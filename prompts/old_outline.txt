@@ -1,0 +1,9 @@
+Act as an SEO expert speaking fluent English to write an outline for an article titled: "{{title}}". The article topic is {{topic}}.
+
+Return strictly only a JSON object that contains the attribute called "outline" that contains a 2d array of exactly {{sections_ammount}} items, each item is an flat array with top level (h2) headline of an article paragraph, also the array includes the id of a linking article which has a similar topic as the h2 headline. The value of the id has too be from the article Database bellow. Don't include the word "h2" in any of the titles, don't wrap titles in quotation marks, each heading is only the text of the heading. and another attribute called "categories" that contains a flat array of exactly{{categories_ammount}} items. Each item is a short SEO category, used to group different articles. The array will contain string items only.
+
+structure of paragraph item: ["paragraph_title", linking_article_id] 
+
+Linking Article Database:
+ID, Title
+{{linking_articles_database}}

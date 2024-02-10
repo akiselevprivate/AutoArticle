@@ -3,7 +3,14 @@ from db.manage import create_db
 from db.models import db_obj, Article, Action, ArticleLink
 from settings.settings import settings
 from utils.other import generate_seo_friendly_url
-from utils.create import continue_article, get_existing_titles_with_uuid, create_titles
+from utils.create import (
+    continue_article,
+    get_existing_titles_with_uuid,
+    create_titles,
+    process_articles_in_paralel,
+    process_articles_sequentialy,
+)
+from utils.llm import rate_limiter
 from settings.logger import logger
 import json
 import asyncio
@@ -68,9 +75,9 @@ def new(
             articles.append(article)
         except Exception as e:
             logger.info(e)
-            logger.info(f'artile with title: "{title}" already exists')
+            logger.info(f'article with title: "{title}" already exists')
 
-    logger.info(f"created {len(articles)}/{len(new_titles)} new articles (titles)")
+    logger.info(f"created {len(articles)}/{len(new_titles)} new titles (acticles)")
 
     new_articles_count = (
         articles_count if articles_count else settings.GEN_ARTICLES_COUNT
@@ -82,22 +89,21 @@ def new(
         :new_articles_count
     ]
 
-    loop = asyncio.get_event_loop()
+    # finished_articles, success_list = process_articles_in_paralel(
+    #     gen_articles, linking_titles_with_uuids
+    # )
 
-    tasks = [
-        continue_article(article, linking_titles_with_uuids) for article in gen_articles
-    ]
-
-    # Run the asynchronous functions in the event loop
-    results = loop.run_until_complete(asyncio.gather(*tasks))
-
-    loop.close()
-
-    finished_articles = [i[0] for i in results]
-    success_list = [i[1] for i in results]
+    finished_articles, success_list = process_articles_sequentialy(
+        gen_articles, linking_titles_with_uuids
+    )
 
     logger.info(
         f"Succesufully generated {sum(success_list)}/{new_articles_count} articles"
+    )
+
+    input_price, output_price = rate_limiter.calculate_total_price()
+    logger.info(
+        f"Used {input_price:.2f}$ for input tokens, {output_price:.2f}$ for output tokens, {output_price+input_price:.2f}$ total"
     )
 
 
@@ -120,8 +126,7 @@ def existing(actions, articles_count, existing_titles):
             .join(Action)
             .where(
                 Article.article_type == settings.ARTICLE_TYPE,
-                Action.action_deleted == False,
-                Article.article_deleted == False,
+                Article.is_complete == False,
             )
             .limit(articles_count)
         )
@@ -133,8 +138,6 @@ def existing(actions, articles_count, existing_titles):
                 Action.uuid == action,
                 Article.article_type == settings.ARTICLE_TYPE,
                 Article.is_complete == False,
-                Action.action_deleted == False,
-                Article.article_deleted == False,
             )
             .limit(articles_count)
         )
@@ -153,20 +156,15 @@ def existing(actions, articles_count, existing_titles):
         :new_articles_count
     ]
 
-    loop = asyncio.get_event_loop()
-
-    tasks = [
-        continue_article(article, linking_titles_with_uuids) for article in articles
-    ]
-
-    # Run the asynchronous functions in the event loop
-    results = loop.run_until_complete(asyncio.gather(*tasks))
-
-    loop.close()
-
-    finished_articles = [i[0] for i in results]
-    success_list = [i[1] for i in results]
+    finished_articles, success_list = process_articles_sequentialy(
+        articles, linking_titles_with_uuids
+    )
 
     logger.info(
         f"Succesufully finished {sum(success_list)}/{new_articles_count} articles"
+    )
+
+    input_price, output_price = rate_limiter.calculate_total_price()
+    logger.info(
+        f"Used {input_price:.2f}$ for input tokens, {output_price:.2f}$ for output tokens, {output_price+input_price:.2f}$ total"
     )

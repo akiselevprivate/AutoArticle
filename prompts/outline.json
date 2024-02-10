@@ -1,0 +1,19 @@
+{
+  "outline": [
+    {
+      "title": "<Section Heading (h2)>",
+      "sub_outline": ["<Sub Heading (h3)>", ...],
+      "linking_id": <Linking article ID>
+    },
+    ...
+  ],
+  "categories": ["<Artile Categorie>", ...],
+  "excerpt": "<Excerpt / Description of the article>",
+  "faq": [
+    {
+        "question": "<FAQ Question>",
+        "answer": "<Answer to question>"
+    },
+    ...
+  ]
+}

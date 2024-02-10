@@ -8,7 +8,7 @@ from typing import Callable
 
 from utils.rate_limmiter import RateLimiter
 
-MODEL = "gpt-3.5-turbo"
+MODEL = "gpt-3.5-turbo-1106"
 
 
 openai_client = OpenAI(api_key=settings.OPENAI_KEY)
@@ -16,9 +16,11 @@ rate_limiter = RateLimiter()
 
 
 @rate_limiter.request
-def llm_completion(prompt: str, max_tokens: int):
+def llm_completion(
+    prompt: str, max_tokens: int, return_json: bool = False, model: str = None
+):
     chat_params = dict(
-        model=MODEL,
+        model=model if model else MODEL,
         messages=[
             {
                 "role": "user",
@@ -26,7 +28,14 @@ def llm_completion(prompt: str, max_tokens: int):
             }
         ],
         max_tokens=max_tokens,
+        temperature=1,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0,
     )
+
+    if return_json:
+        chat_params["response_format"] = {"type": "json_object"}
 
     response = openai_client.chat.completions.create(**chat_params)
     return (
@@ -38,6 +47,7 @@ def llm_completion(prompt: str, max_tokens: int):
 def json_llm_completion(
     prompt: str,
     max_tokens: int,
+    model: str = None,
     throw_exception: bool = False,
     other_checks_func: Callable = None,
 ):
@@ -46,11 +56,13 @@ def json_llm_completion(
     while True:
         tries_count += 1
         logger.debug(f"Completion try: {tries_count}")
-        completion, usage = llm_completion(prompt, max_tokens)
+        completion, usage = llm_completion(
+            prompt, max_tokens, return_json=True, model=model
+        )
         all_usages.append(usage)
         try:
             dict_completion = extract_json(completion)
-            if other_checks_func:
+            if other_checks_func != None:
                 assert other_checks_func(dict_completion)
             return dict_completion, all_usages
         except Exception as e:

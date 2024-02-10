@@ -5,9 +5,11 @@ from utils.other import (
     remove_first_h2_markdown,
     remove_title_from_markdown,
     markdown_to_html,
+    generate_seo_friendly_url,
 )
 from settings.logger import logger
 
+import json
 import requests
 
 
@@ -23,52 +25,96 @@ def upload_article_request(session: requests.Session, article_data: dict):
     return responce, responce.status_code == 201
 
 
-def upload_articles(articles: list[Article]):
-    session = create_session()
-    successful_uploads = 0
-    for article in articles:
-        markdown_str = str(article.full_article_markdown)
-        if not settings.UPLOAD_WITH_TITLE:
-            markdown_str = remove_title_from_markdown(markdown_str)
-            # logger.debug("markdown without title")
-            # logger.debug(markdown_str)
-        html = markdown_to_html(markdown_str)
-        data = {
-            "title": article.title,
-            "slug": article.url_ending,
-            "content": html,
-            # "categories": "categorie,cat2",
-            # "tags": "tag",
-            "status": "private",
-        }
-        responce, success = upload_article_request(session, data)
+def create_article_markdown(article: Article):
+    markdown_components = []
+    if settings.UPLOAD_WITH_TITLE:
+        markdown_components.append(f"# {article.title}")
+    outline_dict = json.loads(article.outline_json)
+    article_sections = json.loads(article.sections_list_json)
+    for (outline_title, linking_article_uuid), section_markdown in zip(
+        outline_dict["outline"], article_sections
+    ):
+        markdown_components.append(f"## {outline_title}")
 
-        if success:
-            successful_uploads += 1
-            article.is_published = True
-            article.save()
-        else:
-            logger.error(f"Failed to upload {article.title}")
-            logger.error(responce.json())
+        linking_article_slug = Article.get_by_id(linking_article_uuid).url_ending
+        linking_article_link = settings.SITE_URL + linking_article_slug
 
-    return successful_uploads
+        if settings.REMOVE_TOP_H2:
+            section_markdown = remove_first_h2_markdown(section_markdown)
 
-
-def create_full_markdown(
-    title: str, sections_list: dict, section_chunk: list, include_title: bool
-):
-    content_list = []
-    if include_title:
-        content_list.append(
-            f"# {title}",
+        section_markdown = replace_urls_in_markdown(
+            section_markdown, linking_article_link
         )
 
-    for (section_title, replace_url), section_md in zip(sections_list, section_chunk):
-        content_list.append(f"## {section_title}")
-        if settings.REMOVE_TOP_H2:
-            section_md = remove_first_h2_markdown(section_md)
-        url_replaced_md = replace_urls_in_markdown(section_md, replace_url)
-        content_list.append(url_replaced_md)
+        markdown_components.append(section_markdown)
 
-    markdown_string = "\n".join(content_list)
-    return markdown_string
+    if settings.UPLOAD_WITH_FAQ:
+        faq_markdown = create_faq_block(json.loads(article.faq_json))
+        markdown_components.append(faq_markdown)
+
+    full_markdown = "\n".join(markdown_components)
+    return full_markdown
+
+
+def create_categorie_request(session: requests.Session, categorie_data: dict):
+    url = settings.SITE_URL + "wp-json/wp/v2/categories"
+    responce = session.post(url, json=categorie_data)
+    json_responce = responce.json()
+    categorie_id = None
+    if responce.status_code == 201:
+        categorie_id = json_responce["id"]
+        success = True
+    elif responce.status_code == 400 and responce.json()["code"] == "term_exists":
+        categorie_id = json_responce["data"]["term_id"]
+        success = True
+    else:
+        success = False
+
+    return responce, success, categorie_id
+
+
+def create_faq_block(faq_content: list):
+    content = ["## FAQ"]
+    for question, answer in faq_content:
+        content.append(f"### {question}")
+        content.append(answer)
+    return "\n".join(content)
+
+
+def upload_article(article: Article, session: requests.Session):
+    content_markdown = create_article_markdown(article)
+    content_html = markdown_to_html(content_markdown)
+
+    categories = json.loads(article.outline_json)["categories"]
+
+    categorie_ids = []
+    for cat in categories:
+        cat_data = dict(
+            slug=generate_seo_friendly_url(cat),
+            name=cat,
+        )
+        responce, success, categorie_id = create_categorie_request(session, cat_data)
+        if not success:
+            logger.error(responce.json())
+            raise Exception("failed creating categorie")
+        categorie_ids.append(categorie_id)
+
+    post_data = {
+        "title": article.title,
+        "slug": article.url_ending,
+        "content": content_html,
+        "excerpt": article.excerpt,
+        "categories": categorie_ids,
+        "status": "private",
+    }
+
+    responce, success = upload_article_request(session, post_data)
+
+    if success:
+        article.is_published = True
+        article.save()
+    else:
+        logger.error("failed to upload article")
+        logger.error(responce.json())
+
+    return article, success

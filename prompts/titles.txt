@@ -1,0 +1,17 @@
+Act as an SEO expert speaking fluent English to write only titles that will rank high in Google search results when searching about {{topic}}.
+
+title examples:
+{{examples}}
+
+Settings:
+// Do not use examples in your output JSON.
+// Try to use Emotional Words and Power Words in the title to boost engagement.
+// Make the titles very differnt from eachother.
+// Create very different titles that still follow the topic.
+// do not include numbers in the title.
+// The titles should not be general and be more specific.
+
+Additional settings:
+// {{additional_settings}}
+
+Return strictly only a JSON object that contains the attribute called "titles" that contains a flat array of exactly {{ammount}} items, each item is a SEO title. The array will contain string items only. 

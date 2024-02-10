@@ -15,13 +15,10 @@ class Action(BaseModel):
     id = UUIDField(primary_key=True, default=uuid_pkg.uuid4)
     action_type = TextField()  # create, manage, upload
     created_at = DateTimeField(default=datetime.datetime.utcnow())
-    action_deleted = BooleanField(default=False)
+    # is_deleted = BooleanField(default=False)
     settings = TextField()
 
     title_used_tokens = IntegerField(null=True)
-    alt_titles_used_tokens = IntegerField(null=True)
-    outline_used_tokens = IntegerField(null=True)
-    sections_used_tokens = IntegerField(null=True)
 
 
 class Article(BaseModel):
@@ -31,7 +28,6 @@ class Article(BaseModel):
 
     title = TextField(unique=True)
     url_ending = TextField(unique=True)
-    # alternative_title = TextField()
     outline_json = TextField(null=True)
     # tags_json = TextField(null=True)
     categories_json = TextField(null=True)
@@ -39,10 +35,13 @@ class Article(BaseModel):
     faq_json = TextField(null=True)
     excerpt = TextField(null=True)
 
+    outline_tokens_used = IntegerField(null=True)
+    sections_tokens_used = IntegerField(null=True)
+
     is_complete = BooleanField(default=False)
     is_succesful = BooleanField(null=True)
     is_published = BooleanField(default=False)
-    article_deleted = BooleanField(default=False)
+    # article_deleted = BooleanField(default=False)
 
     # full_article_markdown = TextField(null=True)
     # html_converted_markdown = TextField(null=True)

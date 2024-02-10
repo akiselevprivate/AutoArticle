@@ -2,6 +2,7 @@ import time
 from threading import Lock
 from settings.logger import logger
 from openai import RateLimitError
+from settings.settings import settings
 
 
 class RateLimiter:
@@ -13,10 +14,22 @@ class RateLimiter:
         self.total_input_tokens = 0
         self.total_output_tokens = 0
 
+    def calculate_total_price(self):
+        input_price = (
+            self.total_input_tokens / 1000 * settings.PRICE_PER_THOUSAND_INPUT_TOKENS
+        )
+        output_price = (
+            self.total_output_tokens / 1000 * settings.PRICE_PER_THOUSAND_OUTPUT_TOKENS
+        )
+        return input_price, output_price
+
     def request(self, func):
         def wrap(*args, **kwargs):
             def req(*args, **kwargs):
                 response = func(*args, **kwargs)
+                completion, usage = response
+                self.total_input_tokens += usage.prompt_tokens
+                self.total_output_tokens += usage.completion_tokens
                 return response
 
             try:
