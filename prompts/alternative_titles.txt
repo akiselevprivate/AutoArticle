@@ -1,6 +1,0 @@
-Act as an SEO expert speaking fluent English to rewrite titles is a subtle way, that will rank high in Google search results when searching about {{topic}}.
-
-titles list:
-{{titles}}
-
-Return strictly only a JSON object that contains the attribute called "titles" that contains a flat array of exactly {{ammount}} items, each item is a SEO alternatve to the title in the titles list. The array will contain string items only.

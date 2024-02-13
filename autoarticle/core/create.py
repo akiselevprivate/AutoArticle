@@ -9,6 +9,7 @@ from utils.create import (
     create_titles,
     process_articles_in_paralel,
     process_articles_sequentialy,
+    get_and_add_categories,
 )
 from utils.llm import rate_limiter
 from settings.logger import logger
@@ -89,12 +90,15 @@ def new(
         :new_articles_count
     ]
 
+    titles_text = [t[0] for t in linking_titles_with_uuids]
+    categories = get_and_add_categories(titles_text)
+
     # finished_articles, success_list = process_articles_in_paralel(
     #     gen_articles, linking_titles_with_uuids
     # )
 
     finished_articles, success_list = process_articles_sequentialy(
-        gen_articles, linking_titles_with_uuids
+        gen_articles, linking_titles_with_uuids, categories
     )
 
     logger.info(
@@ -156,8 +160,13 @@ def existing(actions, articles_count, existing_titles):
         :new_articles_count
     ]
 
+    titles_text = [t[0] for t in linking_titles_with_uuids]
+    categories = get_and_add_categories(titles_text)
+
+    logger.info(f"Continuing {len(articles)} new articles")
+
     finished_articles, success_list = process_articles_sequentialy(
-        articles, linking_titles_with_uuids
+        articles, linking_titles_with_uuids, categories
     )
 
     logger.info(

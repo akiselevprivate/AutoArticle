@@ -46,6 +46,10 @@ class Article(BaseModel):
     # full_article_markdown = TextField(null=True)
     # html_converted_markdown = TextField(null=True)
 
+class Categorie(BaseModel):
+    id = UUIDField(primary_key=True, default=uuid_pkg.uuid4)
+    term = TextField(unique=True)
+
 
 class ArticleLink(BaseModel):
     id = UUIDField(primary_key=True, default=uuid_pkg.uuid4)

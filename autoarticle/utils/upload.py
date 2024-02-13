@@ -31,12 +31,10 @@ def create_article_markdown(article: Article):
         markdown_components.append(f"# {article.title}")
     outline_dict = json.loads(article.outline_json)
     article_sections = json.loads(article.sections_list_json)
-    for (outline_title, linking_article_uuid), section_markdown in zip(
-        outline_dict["outline"], article_sections
-    ):
-        markdown_components.append(f"## {outline_title}")
+    for section, section_markdown in zip(outline_dict["outline"], article_sections):
+        markdown_components.append(f"## {section['title']}")
 
-        linking_article_slug = Article.get_by_id(linking_article_uuid).url_ending
+        linking_article_slug = Article.get_by_id(section["linking_uuid"]).url_ending
         linking_article_link = settings.SITE_URL + linking_article_slug
 
         if settings.REMOVE_TOP_H2:
@@ -81,23 +79,13 @@ def create_faq_block(faq_content: list):
     return "\n".join(content)
 
 
-def upload_article(article: Article, session: requests.Session):
+def upload_article(article: Article, session: requests.Session, categories_dict: dict):
     content_markdown = create_article_markdown(article)
     content_html = markdown_to_html(content_markdown)
 
-    categories = json.loads(article.outline_json)["categories"]
-
     categorie_ids = []
-    for cat in categories:
-        cat_data = dict(
-            slug=generate_seo_friendly_url(cat),
-            name=cat,
-        )
-        responce, success, categorie_id = create_categorie_request(session, cat_data)
-        if not success:
-            logger.error(responce.json())
-            raise Exception("failed creating categorie")
-        categorie_ids.append(categorie_id)
+    for cat in json.loads(article.categories_json):
+        categorie_ids.append(categories_dict[cat])
 
     post_data = {
         "title": article.title,

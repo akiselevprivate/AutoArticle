@@ -4,18 +4,20 @@ Settings:
 
 // The article should Incorporate facts supporting your points.
 // Write in a conversational style, using informal tone, personal pronouns, and active voice.
-// Try not to write long sentences to improve readability, use more transition words.
-// Try not to repeat yourself.
+// Try not to write long sentences to improve readability, use a lot of transition words.
 // Use only subheadings, (###). 
-// Create 2-4 subheadings, and meaningful information.
-// I advise you to add lists to aid in explaining and clarification
 // You can bold the text using "**" markdown to emphasise words and phrases.
-// Don't create a summary or conclusion paragraph. 
-// Don't include the title in your output, do not include the section title within the output. 
 // Do not use "#", do not use "##"
+// Use ### subheadings.
+// You can use 1. to number headings
 // Use this syntax for links: [message](id)
-// Only add the link as part of a sentence within the content.
+// When linking you HAVE TOO include the linking articles title or part of the title in the message, so that the reader understands what the link is about. for example: "How to create good content".
+// Include lists to make the article more interesting.
+// Do not wrap the links in slashes "/"
 
+Full article Outline:
+{{full_outline}}
 
-In the content include a link about: {{linking_article_title}}, with id of 1. You are writing a section of an article titled: "{{title}}",
-Write about 300 word of an article's section content using Markdown language, the section titled: "{{section_title}}".
+In the content you have too include a link to article titled: "{{linking_article_title}}", with id of 1. 
+You are writing a section of an article titled: "{{title}}",
+Write about 300 word article's section using Markdown language, the section titled: "## {{section_title}}".
