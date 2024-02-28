@@ -1,40 +1,26 @@
 Act as an SEO expert speaking fluent English to write an outline for an article.
 
-Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {{sections_ammount}} items, each item is a dict with (h2) section heading of an article paragraph and an array of 3-4 h3 level sub titles, also includes the id onlyof a linking article which has a similar topic as the section heading. The value of the id has too be from the article Database bellow. Don't include the word "h2" in any of the titles, don't wrap titles in quotation marks, each heading is only the text of the heading. 
-Add another attribute called "categories" that contains a flat array of exactly {{categories_ammount}}!! items. Each item is an ID from Categorie Database bellow, used to group different articles about the topic above. The array will contain int items only.
+Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {{sections_ammount}} items, each item is a dict with (h2) section heading of an article paragraph and an array of 3-4 h3 level sub titles.
+
+Add another attribute called "category" that contains a single int, which is an ID from Category Database bellow, choose the category that would best categorise the article title.
+
 Add another attribute called "excerpt": which is a string with a very short description / excerpt of the article.
-Add another attribute called "faq" that contains a 2d array of exactly {{faq_ammount}} items. Each item is an array with a question of a small paragraph and an answer on a topic from the article, do not include linking in faq. The arrays will contain string items only.
 
 complete this JSON as the output:
 {
   "outline": [
     {
       "title": "<Section Heading (h2)>",
-      "sub_headings": ["<Sub Heading (h3)>", ...],
-      "linking_id": <Linking article ID>
+      "sub_headings": ["<Sub Heading (h3)>", ...]
     },
     ...
   ],
-  "categories": ["<Artile Categorie ID>", ...],
-  "excerpt": "<Excerpt / Description of the article>",
-  "faq": [
-    {
-        "question": "<FAQ Question>",
-        "answer": "<Answer to question>"
-    },
-    ...
-  ]
+  "category": <Artile Category ID>,
+  "excerpt": "<Excerpt / Description of the article>"
 }
 
-faq question examples: 
-{{faq_examples}}
-
-Linking Article Database:
-ID, Title
-{{linking_articles_database}}
-
-Categories Database:
-ID, Categorie
+Category Database:
+ID, Category
 {{categories_database}}
 
 Write a JSON outline for an article titled: "{{title}}". The overall article topic is {{topic}}.

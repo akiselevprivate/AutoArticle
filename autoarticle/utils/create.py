@@ -3,7 +3,12 @@ from settings.logger import logger
 from utils.llm import json_llm_completion, llm_completion
 from db.models import Article, Action, ArticleLink, Categorie
 from settings import prompts
-
+from utils.other import (
+    generate_seo_friendly_url,
+    extract_text_from_quotes,
+    save_image_from_url,
+)
+from utils.image_gen import generate_image
 
 import json
 from copy import deepcopy, copy
@@ -13,10 +18,38 @@ import asyncio
 from typing import Union, List
 
 
-def create_titles(
-    titles_count: int,
-) -> Union[list, list]:
-    title_exaples_str = "\n".join(prompts.TITLE_EXAMPLES)
+def save_new_articles(action: Action, titles: list):
+    articles = []
+
+    for title in titles:
+        url_ending = generate_seo_friendly_url(title)
+        try:
+            article = Article.create(
+                action=action,
+                article_type=settings.ARTICLE_TYPE,
+                title=title,
+                url_ending=url_ending,
+            )
+            articles.append(article)
+        except Exception as e:
+            logger.info(e)
+            logger.info(f'article with title: "{title}" already exists')
+
+    return articles
+
+
+def create_titles(titles_count: int, existing_titles: list) -> Union[list, list]:
+
+    if (
+        settings.ROTATE_EXAMPLE_TITLES
+        and len(existing_titles) <= settings.ROTATING_EXAMPLE_TITLES_COUNT
+    ):
+        np.random.shuffle(existing_titles)
+        rotated_titles = existing_titles[: settings.ROTATING_EXAMPLE_TITLES_COUNT]
+        title_exaples_str = "\n".join(rotated_titles)
+    else:
+        title_exaples_str = "\n".join(prompts.TITLE_EXAMPLES)
+
     replaced_prompt = (
         prompts.TITLES.replace(r"{{topic}}", settings.TOPIC)
         .replace(r"{{examples}}", title_exaples_str)
@@ -39,23 +72,15 @@ def create_titles(
     return titles_list, all_usages
 
 
-def create_outline(title: str, linking_titles_with_uuids: list, categories: list):
-    linking_titles_with_uuids_copy = deepcopy(linking_titles_with_uuids)
-    current_title_idx = [i[0] for i in linking_titles_with_uuids_copy].index(title)
-    del linking_titles_with_uuids_copy[current_title_idx]
-    np.random.shuffle(linking_titles_with_uuids_copy)
-    linking_titles_with_uuids_copy = linking_titles_with_uuids_copy[
-        : settings.LINKING_TITLES_IN_SECTION_COUNT
-    ]
-    linking_titles_with_local_id = [
-        [idx + 1, title_with_uuid[0]]
-        for idx, title_with_uuid in enumerate(linking_titles_with_uuids_copy)
-    ]
-    linking_articles_db_str_list = [
-        f"{local_id}, {title}" for local_id, title in linking_titles_with_local_id
-    ]
-    linking_articles_db_str = "\n".join(linking_articles_db_str_list)
-    faq_examples_str = "\n".join(prompts.FAQ_EXAMPLES)
+def find_title(array, target_value):
+    for local_id, title in array:
+        if local_id == target_value:
+            return title
+
+
+def create_outline(title: str, categories: list):
+
+    # faq_examples_str = "\n".join(prompts.FAQ_EXAMPLES)
 
     categories_with_local_id = [
         [idx + 1, categorie] for idx, categorie in enumerate(categories)
@@ -68,35 +93,25 @@ def create_outline(title: str, linking_titles_with_uuids: list, categories: list
     prompt = (
         prompts.OUTLINE.replace(r"{{topic}}", settings.TOPIC)
         .replace(r"{{title}}", title)
-        .replace(r"{{categories_ammount}}", str(settings.ARTICLE_CATEGORIES_COUNT))
-        .replace(r"{{faq_ammount}}", str(settings.FAQ_AMMOUNT))
-        .replace(r"{{faq_examples}}", faq_examples_str)
+        # .replace(r"{{categories_ammount}}", str(settings.CATEGORIES_COUNT))
+        # .replace(r"{{faq_ammount}}", str(settings.FAQ_AMMOUNT))
+        # .replace(r"{{faq_examples}}", faq_examples_str)
         .replace(r"{{sections_ammount}}", str(settings.ARTICLE_SECTIONS_COUNT))
-        .replace(r"{{linking_articles_database}}", linking_articles_db_str)
         .replace(r"{{categories_database}}", categrories_db_str)
     )
 
     def dict_check(dict_completion: dict):
         return (
-            set(["outline", "categories", "excerpt", "faq"])
-            == set(dict_completion.keys())
-            and all(
-                [
-                    type(section["linking_id"]) == int
-                    and section["linking_id"] > 0
-                    and section["linking_id"]
-                    <= settings.LINKING_TITLES_IN_SECTION_COUNT
-                    for section in dict_completion["outline"]
-                ]
-            )
-            and all(
-                [
-                    type(cat_id) == int
-                    and cat_id > 0
-                    and cat_id <= settings.CATEGORIES_COUNT
-                    for cat_id in dict_completion["categories"]
-                ]
-            )
+            set(["outline", "category", "excerpt"]) == set(dict_completion.keys())
+            # and all(
+            #     [
+            #         type(section["linking_id"]) == int
+            #         and section["linking_id"] > 0
+            #         and section["linking_id"]
+            #         <= settings.LINKING_TITLES_IN_SECTION_COUNT
+            #         for section in dict_completion["outline"]
+            #     ]
+            # )
             and len(dict_completion["outline"]) == settings.ARTICLE_SECTIONS_COUNT
         )
 
@@ -106,54 +121,100 @@ def create_outline(title: str, linking_titles_with_uuids: list, categories: list
 
     # json.dump(outline_dict, open("od.json", "w+"))
 
-    def find_title(array, target_value):
-        for local_id, title in array:
-            if local_id == target_value:
-                return title
-
     if outline_dict:
-        for idx, section in enumerate(outline_dict["outline"]):
-            section_link_id = section["linking_id"]
-            public_article_title = find_title(
-                linking_titles_with_local_id, section_link_id
-            )
-            title_idx = [i[1] for i in linking_titles_with_local_id].index(
-                public_article_title
-            )
-            section_article_uuid = linking_titles_with_uuids_copy[title_idx][1]
-            outline_dict["outline"][idx]["linking_uuid"] = section_article_uuid
-
-        local_categories_ids = outline_dict["categories"]
-        selected_categories = []
-        for idx, local_id in enumerate(local_categories_ids):
-            categorie = find_title(categories_with_local_id, local_id)
-            selected_categories.append(categorie)
-
-        outline_dict["categories"] = selected_categories
+        # print(categories_with_local_id)
+        category = find_title(categories_with_local_id, int(outline_dict["category"]))
+        # print(category)
+        outline_dict["category"] = category
 
     # json.dump(outline_dict, open("res.json", "w+"))
 
     return outline_dict, usage_list
 
 
+def create_linking(
+    title: str,
+    outline_dict: dict,
+    linking_titles_with_uuids: list,
+):
+    linking_titles_with_uuids_copy = deepcopy(linking_titles_with_uuids)
+    current_title_idx = [i[0] for i in linking_titles_with_uuids_copy].index(title)
+    del linking_titles_with_uuids_copy[current_title_idx]
+    np.random.shuffle(linking_titles_with_uuids_copy)
+    linking_titles_with_uuids_copy = linking_titles_with_uuids_copy[
+        : settings.LINKING_TITLES_COUNT
+    ]
+    linking_titles_with_local_id = [
+        [idx + 1, title_with_uuid[0]]
+        for idx, title_with_uuid in enumerate(linking_titles_with_uuids_copy)
+    ]
+    linking_articles_db_str_list = [
+        f"{local_id}, {title}" for local_id, title in linking_titles_with_local_id
+    ]
+    linking_articles_db_str = "\n".join(linking_articles_db_str_list)
+
+    full_outline_text = create_text_outline(outline_dict, False)
+
+    prompt = (
+        prompts.INTERLINKING.replace(
+            r"{sections_count}", str(settings.ARTICLE_SECTIONS_COUNT)
+        )
+        .replace(r"{linking_articles_database}", linking_articles_db_str)
+        .replace(r"{article_outline}", full_outline_text)
+    )
+
+    def dict_check(dict_completion: dict):
+        return (
+            "links" in dict_completion
+            and len(dict_completion["links"]) == settings.ARTICLE_SECTIONS_COUNT
+            and all(
+                [i <= settings.LINKING_TITLES_COUNT for i in dict_completion["links"]]
+            )
+        )
+
+    completion, usage = json_llm_completion(prompt, 1024, other_checks_func=dict_check)
+
+    # json.dump(completion, open("aa.json", "w+"))
+
+    linking_ids = completion["links"]
+
+    linking_articles_uuids = []
+    for section_link_id in linking_ids:
+        public_article_title = find_title(linking_titles_with_local_id, section_link_id)
+        title_idx = [i[1] for i in linking_titles_with_local_id].index(
+            public_article_title
+        )
+        section_article_uuid = linking_titles_with_uuids_copy[title_idx][1]
+        linking_articles_uuids.append(section_article_uuid)
+
+    return linking_articles_uuids
+
+
+def create_text_outline(outline_dict: dict, sub_outline: bool = True):
+    full_outline_text_list = []
+    for section in outline_dict["outline"]:
+        full_outline_text_list.append(f"## {section['title']}")
+        if sub_outline:
+            for sub_heading in section["sub_headings"]:
+                full_outline_text_list.append(f"## {sub_heading}")
+    full_outline_text = "\n".join(full_outline_text_list)
+    return full_outline_text
+
+
 async def create_sections_markdown(
-    title: str, linking_titles_with_uuids: list, outline_dict: dict
+    title: str,
+    linking_articles_uuids: list,
+    linking_titles_with_uuids: list,
+    outline_dict: dict,
 ):
     section_prompts = []
     linking_titles = [i[0] for i in linking_titles_with_uuids]
     linking_uuids = [i[1] for i in linking_titles_with_uuids]
-    full_outline_text_list = []
-    for section in outline_dict["outline"]:
-        full_outline_text_list.append(f"## {section['title']}")
-        for sub_heading in section["sub_headings"]:
-            full_outline_text_list.append(f"## {sub_heading}")
 
-    full_outline_text = "\n".join(full_outline_text_list)
+    full_outline_text = create_text_outline(outline_dict, False)
 
-    for section in outline_dict["outline"]:
-        linking_article_title = linking_titles[
-            linking_uuids.index(section["linking_uuid"])
-        ]
+    for section, linking_uuid in zip(outline_dict["outline"], linking_articles_uuids):
+        linking_article_title = linking_titles[linking_uuids.index(linking_uuid)]
         prompt = (
             prompts.SECTION.replace(r"{{title}}", title)
             .replace(r"{{linking_article_title}}", linking_article_title)
@@ -181,33 +242,47 @@ async def continue_article(
     title = article.title
     success = True
     if not article.outline_json:
-        outline_dict, outline_usage_list = create_outline(
-            title, linking_titles_with_uuids, categories
-        )
+        outline_dict, outline_usage_list = create_outline(title, categories)
         if outline_dict == None:
             success = False
         else:
             article.outline_json = json.dumps(outline_dict)
-            article.categories_json = json.dumps(outline_dict["categories"])
-            article.faq_json = json.dumps(outline_dict["faq"])
+            article.category = outline_dict["category"]
             article.excerpt = outline_dict["excerpt"]
             article.outline_tokens_used = sum(
                 [usage.total_tokens for usage in outline_usage_list]
             )
             article.save()
 
-            for section in outline_dict["outline"]:
-                ArticleLink.create(
-                    from_article=article, to_article=section["linking_uuid"]
-                )
-                if str(article.id) == section["linking_uuid"]:
-                    logger.error(f"linking thesame article: {section['linking_uuid']}")
     else:
         outline_dict = json.loads(article.outline_json)
 
+    if success and not article.interlinking_uuids_json:
+        linking_articles_uuids = create_linking(
+            title, outline_dict, linking_titles_with_uuids
+        )
+        article.interlinking_uuids_json = json.dumps(linking_articles_uuids)
+        article.save()
+
+        for linking_uuid in linking_articles_uuids:
+            ArticleLink.create(from_article=article, to_article=linking_uuid)
+            if str(article.id) == linking_uuid:
+                logger.error(f"linking thesame article: {linking_uuid}")
+
+    else:
+        linking_articles_uuids = json.loads(article.interlinking_uuids_json)
+
+    if settings.GENERATE_IMAGE and success and not article.image_generated:
+        success, image_description = create_image_from_title(
+            article.title, str(article.id)
+        )
+        article.image_description = image_description
+        article.image_generated = success
+        article.save()
+
     if success and not article.sections_list_json:
         sections_dict_list, sections_usage_list = await create_sections_markdown(
-            title, linking_titles_with_uuids, outline_dict
+            title, linking_articles_uuids, linking_titles_with_uuids, outline_dict
         )
         article.sections_list_json = json.dumps(sections_dict_list)
         article.sections_tokens_used = sum(
@@ -221,7 +296,7 @@ async def continue_article(
     article.is_succesful = success
     article.save()
 
-    logger.info(f"completed article: {article.title}")
+    logger.info(f"completed article: {article.title}, success: {success}")
 
     return article, success
 
@@ -291,7 +366,7 @@ def get_and_add_categories(titles: list):
     if len(existing_categories) < settings.CATEGORIES_COUNT:
         categories_terms = [c[0] for c in existing_categories]
         titles_str = "\n".join(titles)
-        new_categories = create_categories(
+        new_categories, usage = create_categories(
             settings.CATEGORIES_COUNT - len(existing_categories),
             categories_terms,
             titles_str,
@@ -300,22 +375,22 @@ def get_and_add_categories(titles: list):
     return existing_categories
 
 
-def process_articles_in_paralel(articles: list[Article], linking_titles_with_uuids):
-    loop = asyncio.get_event_loop()
+# def process_articles_in_paralel(articles: list[Article], linking_titles_with_uuids):
+#     loop = asyncio.get_event_loop()
 
-    tasks = [
-        continue_article(article, linking_titles_with_uuids) for article in articles
-    ]
+#     tasks = [
+#         continue_article(article, linking_titles_with_uuids) for article in articles
+#     ]
 
-    # Run the asynchronous functions in the event loop
-    results = loop.run_until_complete(asyncio.gather(*tasks))
+#     # Run the asynchronous functions in the event loop
+#     results = loop.run_until_complete(asyncio.gather(*tasks))
 
-    loop.close()
+#     loop.close()
 
-    finished_articles = [i[0] for i in results]
-    success_list = [i[1] for i in results]
+#     finished_articles = [i[0] for i in results]
+#     success_list = [i[1] for i in results]
 
-    return finished_articles, success_list
+#     return finished_articles, success_list
 
 
 def process_articles_sequentialy(
@@ -333,3 +408,13 @@ def process_articles_sequentialy(
         success_list.append(is_successfull)
 
     return finished_articles, success_list
+
+
+def create_image_from_title(title: str, uuid: str):
+    prompt = prompts.IMAGE_DESCRIPTION.replace(r"{title}", title)
+    completion, usage = llm_completion(prompt, 50)
+    image_description = extract_text_from_quotes(completion)
+    image_url = generate_image(image_description)
+    save_file_path = f"{settings.IMAGE_PATH}/{uuid}.png"
+    success = save_image_from_url(image_url, save_file_path)
+    return success, image_description

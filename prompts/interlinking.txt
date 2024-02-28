@@ -1,0 +1,23 @@
+Act as an SEO expert to interlink articles, by doing this you can add more context and additional information to the article.
+
+From the Linking Database bellow choose exactly {sections_count} article ID which would add context and info for the main article.
+Each link will be used in subheadings of the main article. There can not be duplcate links in the output.
+
+Output a JSON with attribute "links" as the format provided. Each ID should be a int value. 
+
+## are the subheadings
+
+JSON format:
+{
+    "links": [<Linking Article ID>, ...]
+}
+
+Linking Article Database:
+ID, Title
+{linking_articles_database}
+
+
+Main Aritle Outline:
+{article_outline}
+
+Create the JSON output of link IDs for the main article called "{title}":

@@ -19,3 +19,7 @@ ID, Title
 {{linking_articles_database}}
 
 
+
+
+
+The value of the id has too be from the article Database bellow. Don't include the word "h2" in any of the titles, don't wrap titles in quotation marks, each heading is only the text of the heading. 

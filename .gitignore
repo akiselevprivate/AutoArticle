@@ -5,3 +5,5 @@ logs
 db.sqlite
 future.md
 old_dbs
+images
+vectors

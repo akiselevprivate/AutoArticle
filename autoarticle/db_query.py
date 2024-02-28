@@ -1,7 +1,15 @@
 from db.models import Article
+import json
 
-artices = Article.select()
 
-titles = "\n".join([a.title for a in artices])
+articles = Article.select().where(Article.is_complete == True)
 
-print(titles)
+data = {}
+for a in articles:
+    sections = []
+    for s in json.loads(a.outline_json)["outline"]:
+        sections.append(s["title"])
+    data[str(a.id)] = {"title": a.title, "sections": sections}
+
+
+json.dump(data, open("vector.json", "w+"))

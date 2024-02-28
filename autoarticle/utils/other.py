@@ -3,6 +3,10 @@ import uuid as uuid_pkg
 from unidecode import unidecode
 import markdown as markdown_pkg
 import re
+import requests
+from io import BytesIO
+from PIL import Image
+from settings.logger import logger
 
 
 def extract_json(string: str) -> dict:
@@ -64,3 +68,29 @@ def remove_first_h2_markdown(markdown_str: str):
     return result
 
 
+def extract_text_from_quotes(text: str):
+    match = re.search(r'"(.*?)"', text)
+
+    if match:
+        return match.group(1)
+
+    return text
+
+
+def save_image_from_url(url, output_path):
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        # Open the image using PIL
+        image = Image.open(BytesIO(response.content))
+
+        # Save the image to the specified path
+        image.save(output_path)
+
+        logger.debug(f"Image saved to {output_path}")
+        return True
+    else:
+        logger.error(
+            f"Failed to retrieve the image. Status code: {response.status_code}"
+        )
+        return False

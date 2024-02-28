@@ -25,8 +25,8 @@ class Settings:
     SECTION_PROMPT_FILE: str
     TITLE_PROMPT_FILE: str
     CATEGORIES_PROMPT_FILE: str
-
-    ARTICLES_PATH: str
+    SITEMAP_EXTRACTION_PROMPT_FILE: str
+    INTERLINKING_PROMPT_FILE: str
 
     # Article generation
 
@@ -37,24 +37,40 @@ class Settings:
     GEN_TITLES_COUNT: int
     GEN_ARTICLES_COUNT: int
     JSON_TITLE_EXAMPLES_FILE: str
-    JSON_FAQ_EXAMPLES_FILE: str
-    CATEGORIES_COUNT: int
-    FAQ_AMMOUNT: int
+    # JSON_FAQ_EXAMPLES_FILE: str
+    # FAQ_AMMOUNT: int
     ARTICLE_SECTIONS_COUNT: int
-    LINKING_TITLES_IN_SECTION_COUNT: int
-    ARTICLE_CATEGORIES_COUNT: int
+    LINKING_TITLES_COUNT: int
 
     CATEGORIES_COUNT: int
-    CATEGORIE_TITLES_COUNT: int
+    CATEGORIE_TITLES_COUNT: int  # how many titles to use when creating categories
 
     INVALID_JSON_TRIES: int
     EXISTING_TITLES: bool
+    ROTATE_EXAMPLE_TITLES: bool
+    ROTATING_EXAMPLE_TITLES_COUNT: int
 
     REMOVE_TOP_H2: bool
 
-    UPLOAD_WITH_FAQ: bool
+    # UPLOAD_WITH_FAQ: bool
     UPLOAD_WITH_TITLE: bool
     PUBLISH_STATUS: str
+
+    IMAGE_GENERATION_PROMPT_FILE: str
+    IMAGE_DESCRIPTION_PROMPT_FILE: str
+    IMAGE_PATH: str
+    GENERATE_IMAGE: bool
+
+    REPLICATE_API_TOKEN: str
+    IMAGE_MODEL: str
+    IMAGE_HEIGHT: int
+    IMAGE_WIDTH: int
+    IMAGE_NEGATIVE_PROMPT: str
+    IMAGE_INFERENCE_STEPS: int
+
+
+    EMBEDDINGS_DB_PATH: str
+    EMBEDDINGS_OPENAI_MODEL: str
 
     def model_dump(self):
         return asdict(self)

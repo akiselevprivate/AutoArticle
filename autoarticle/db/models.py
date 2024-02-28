@@ -30,10 +30,13 @@ class Article(BaseModel):
     url_ending = TextField(unique=True)
     outline_json = TextField(null=True)
     # tags_json = TextField(null=True)
-    categories_json = TextField(null=True)
+    category = TextField(null=True)
+    interlinking_uuids_json = TextField(null=True)
     sections_list_json = TextField(null=True)
-    faq_json = TextField(null=True)
+    # faq_json = TextField(null=True)
     excerpt = TextField(null=True)
+    image_description = TextField(null=True)
+    image_generated = BooleanField(null=True)
 
     outline_tokens_used = IntegerField(null=True)
     sections_tokens_used = IntegerField(null=True)
@@ -45,6 +48,7 @@ class Article(BaseModel):
 
     # full_article_markdown = TextField(null=True)
     # html_converted_markdown = TextField(null=True)
+
 
 class Categorie(BaseModel):
     id = UUIDField(primary_key=True, default=uuid_pkg.uuid4)

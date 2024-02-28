@@ -4,10 +4,10 @@ from db.models import db_obj, Article, Action, ArticleLink
 from settings.settings import settings
 from utils.other import generate_seo_friendly_url
 from utils.create import (
+    save_new_articles,
     continue_article,
     get_existing_titles_with_uuid,
     create_titles,
-    process_articles_in_paralel,
     process_articles_sequentialy,
     get_and_add_categories,
 )
@@ -55,28 +55,16 @@ def new(
 
     titles_count = titles_count if titles_count else settings.GEN_TITLES_COUNT
 
-    new_titles, titles_token_usage = create_titles(titles_count)
+    existing_titles = [t[0] for t in linking_titles_with_uuids]
+
+    new_titles, titles_token_usage = create_titles(titles_count, existing_titles)
 
     # action.title_used_tokens = titles_token_usage
     # action.save()
 
     logger.info(f"generated {len(new_titles)}/{titles_count} new titles")
 
-    articles = []
-
-    for title in new_titles:
-        url_ending = generate_seo_friendly_url(title)
-        try:
-            article = Article.create(
-                action=action,
-                article_type=settings.ARTICLE_TYPE,
-                title=title,
-                url_ending=url_ending,
-            )
-            articles.append(article)
-        except Exception as e:
-            logger.info(e)
-            logger.info(f'article with title: "{title}" already exists')
+    articles = save_new_articles(action, new_titles)
 
     logger.info(f"created {len(articles)}/{len(new_titles)} new titles (acticles)")
 
@@ -134,12 +122,21 @@ def existing(actions, articles_count, existing_titles):
             )
             .limit(articles_count)
         )
+    elif actions == "rerun":
+        articles = (
+            Article.select()
+            .join(Action)
+            .where(
+                Article.article_type == settings.ARTICLE_TYPE,
+            )
+            .limit(articles_count)
+        )
     else:
         articles = (
             Article.select()
             .join(Action)
             .where(
-                Action.uuid == action,
+                Action.id == action,
                 Article.article_type == settings.ARTICLE_TYPE,
                 Article.is_complete == False,
             )

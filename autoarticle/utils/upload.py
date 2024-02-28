@@ -31,10 +31,13 @@ def create_article_markdown(article: Article):
         markdown_components.append(f"# {article.title}")
     outline_dict = json.loads(article.outline_json)
     article_sections = json.loads(article.sections_list_json)
-    for section, section_markdown in zip(outline_dict["outline"], article_sections):
+    linking_uuids = json.loads(article.interlinking_uuids_json)
+    for section, section_markdown, linking_uuid in zip(
+        outline_dict["outline"], article_sections, linking_uuids
+    ):
         markdown_components.append(f"## {section['title']}")
 
-        linking_article_slug = Article.get_by_id(section["linking_uuid"]).url_ending
+        linking_article_slug = Article.get_by_id(linking_uuid).url_ending
         linking_article_link = settings.SITE_URL + linking_article_slug
 
         if settings.REMOVE_TOP_H2:
@@ -46,9 +49,9 @@ def create_article_markdown(article: Article):
 
         markdown_components.append(section_markdown)
 
-    if settings.UPLOAD_WITH_FAQ:
-        faq_markdown = create_faq_block(json.loads(article.faq_json))
-        markdown_components.append(faq_markdown)
+    # if settings.UPLOAD_WITH_FAQ:
+    #     faq_markdown = create_faq_block(json.loads(article.faq_json))
+    #     markdown_components.append(faq_markdown)
 
     full_markdown = "\n".join(markdown_components)
     return full_markdown
@@ -79,13 +82,19 @@ def create_faq_block(faq_content: list):
     return "\n".join(content)
 
 
+def upload_media(session: requests.Session, file_path: str):
+    media = {"file": open(file_path, "rb")}
+    url = settings.SITE_URL + "wp-json/wp/v2/media"
+    response = session.post(url, files=media)
+    featured_image_id = response.json().get("id")
+    return featured_image_id
+
+
 def upload_article(article: Article, session: requests.Session, categories_dict: dict):
     content_markdown = create_article_markdown(article)
     content_html = markdown_to_html(content_markdown)
 
-    categorie_ids = []
-    for cat in json.loads(article.categories_json):
-        categorie_ids.append(categories_dict[cat])
+    categorie_ids = [categories_dict[article.category]]
 
     post_data = {
         "title": article.title,
@@ -95,6 +104,11 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
         "categories": categorie_ids,
         "status": "private",
     }
+
+    if article.image_generated:
+        media_file_path = f"{settings.IMAGE_PATH}/{str(article.id)}.png"
+        featured_image_id = upload_media(session, media_file_path)
+        post_data["featured_media"] = featured_image_id
 
     responce, success = upload_article_request(session, post_data)
 
