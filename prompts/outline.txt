@@ -1,26 +1,13 @@
 Act as an SEO expert speaking fluent English to write an outline for an article.
 
-Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {{sections_ammount}} items, each item is a dict with (h2) section heading of an article paragraph and an array of 3-4 h3 level sub titles.
-
-Add another attribute called "category" that contains a single int, which is an ID from Category Database bellow, choose the category that would best categorise the article title.
-
-Add another attribute called "excerpt": which is a string with a very short description / excerpt of the article.
+Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {sections_ammount} items, each item is a string (h2) section heading of the article.
 
 complete this JSON as the output:
 {
   "outline": [
-    {
-      "title": "<Section Heading (h2)>",
-      "sub_headings": ["<Sub Heading (h3)>", ...]
-    },
+    "<Section Heading (h2)>",
     ...
-  ],
-  "category": <Artile Category ID>,
-  "excerpt": "<Excerpt / Description of the article>"
+  ]
 }
 
-Category Database:
-ID, Category
-{{categories_database}}
-
-Write a JSON outline for an article titled: "{{title}}". The overall article topic is {{topic}}.
+Generate a JSON outline for an article titled: "{title}".

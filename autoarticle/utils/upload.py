@@ -5,7 +5,6 @@ from utils.other import (
     remove_first_h2_markdown,
     remove_title_from_markdown,
     markdown_to_html,
-    generate_seo_friendly_url,
 )
 from settings.logger import logger
 
@@ -29,16 +28,15 @@ def create_article_markdown(article: Article):
     markdown_components = []
     if settings.UPLOAD_WITH_TITLE:
         markdown_components.append(f"# {article.title}")
-    outline_dict = json.loads(article.outline_json)
-    article_sections = json.loads(article.sections_list_json)
-    linking_uuids = json.loads(article.interlinking_uuids_json)
     for section, section_markdown, linking_uuid in zip(
-        outline_dict["outline"], article_sections, linking_uuids
+        article.section_titles, article.sections, article.interlinking_uuids
     ):
-        markdown_components.append(f"## {section['title']}")
+        markdown_components.append(f"## {section}")
 
-        linking_article_slug = Article.get_by_id(linking_uuid).url_ending
-        linking_article_link = settings.SITE_URL + linking_article_slug
+        linking_article_slug = Article.get_by_id(linking_uuid).slug
+        linking_article_link = settings.SITE_URL + linking_article_slug + "/"
+
+        section_markdown = remove_title_from_markdown(section_markdown)
 
         if settings.REMOVE_TOP_H2:
             section_markdown = remove_first_h2_markdown(section_markdown)
@@ -46,6 +44,8 @@ def create_article_markdown(article: Article):
         section_markdown = replace_urls_in_markdown(
             section_markdown, linking_article_link
         )
+
+        section_markdown = section_markdown.replace(r"–", "-")
 
         markdown_components.append(section_markdown)
 
@@ -60,6 +60,7 @@ def create_article_markdown(article: Article):
 def create_categorie_request(session: requests.Session, categorie_data: dict):
     url = settings.SITE_URL + "wp-json/wp/v2/categories"
     responce = session.post(url, json=categorie_data)
+    # print(responce.text)
     json_responce = responce.json()
     categorie_id = None
     if responce.status_code == 201:
@@ -98,9 +99,8 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
 
     post_data = {
         "title": article.title,
-        "slug": article.url_ending,
+        "slug": article.slug,
         "content": content_html,
-        "excerpt": article.excerpt,
         "categories": categorie_ids,
         "status": "private",
     }

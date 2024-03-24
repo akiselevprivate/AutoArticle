@@ -25,30 +25,16 @@ class Settings:
     SECTION_PROMPT_FILE: str
     TITLE_PROMPT_FILE: str
     CATEGORIES_PROMPT_FILE: str
-    SITEMAP_EXTRACTION_PROMPT_FILE: str
-    INTERLINKING_PROMPT_FILE: str
 
     # Article generation
 
-    ADDITIONAL_TITLE_SETTINGS: str
-
-    ARTICLE_TYPE: str
     TOPIC: str
     GEN_TITLES_COUNT: int
-    GEN_ARTICLES_COUNT: int
-    JSON_TITLE_EXAMPLES_FILE: str
-    # JSON_FAQ_EXAMPLES_FILE: str
-    # FAQ_AMMOUNT: int
     ARTICLE_SECTIONS_COUNT: int
-    LINKING_TITLES_COUNT: int
 
     CATEGORIES_COUNT: int
-    CATEGORIE_TITLES_COUNT: int  # how many titles to use when creating categories
 
     INVALID_JSON_TRIES: int
-    EXISTING_TITLES: bool
-    ROTATE_EXAMPLE_TITLES: bool
-    ROTATING_EXAMPLE_TITLES_COUNT: int
 
     REMOVE_TOP_H2: bool
 
@@ -67,7 +53,6 @@ class Settings:
     IMAGE_WIDTH: int
     IMAGE_NEGATIVE_PROMPT: str
     IMAGE_INFERENCE_STEPS: int
-
 
     EMBEDDINGS_DB_PATH: str
     EMBEDDINGS_OPENAI_MODEL: str

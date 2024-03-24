@@ -1,17 +1,9 @@
-Act as an SEO expert speaking fluent English to write only titles that will rank high in Google search results when searching about {{topic}}.
+Good writing titles should be concise, accurate, and informative, and it should tell the reader exactly what the article is about. This is where the keywords you’ve identified come in. It’s vital to incorporate your most relevant keywords in your title to make your article more discoverable in online searches.
+The title should include 1-2 keywords, and these keywords should be within the first 65 characters of the title so that they are visible in the search engine results. This will help you produce an effective title.
+Writing an effective title increases the potential audience for your article by making it more accessible to readers.
 
-title examples:
-{{examples}}
+Do not use examples in your output JSON.
+Create very different titles that still follow the topic.
+The titles should not be general and be more specific.
 
-Settings:
-// Do not use examples in your output JSON.
-// Try to use Emotional Words and Power Words in the title to boost engagement.
-// Make the titles very differnt from eachother.
-// Create very different titles that still follow the topic.
-// do not include numbers in the title.
-// The titles should not be general and be more specific.
-
-Additional settings:
-// {{additional_settings}}
-
-Return strictly only a JSON object that contains the attribute called "titles" that contains a flat array of exactly {{ammount}} items, each item is a SEO title. The array will contain string items only. 
+In JSON format with "titles" argument with flat array of string itme, create {ammount} blog article titles on the topic {topic} with the category {category}:

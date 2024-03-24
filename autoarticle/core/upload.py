@@ -1,9 +1,9 @@
 import click
 from settings.settings import settings
-from db.models import Action, Article, Categorie
+from db.models import Article
 from settings.logger import logger
 from utils.upload import upload_article, create_session, create_categorie_request
-from utils.other import generate_seo_friendly_url
+from generation.utils import generate_slug
 import json
 
 # @click.group()
@@ -14,61 +14,39 @@ import json
 @click.command()
 @click.argument("actions", type=str)
 def upload(actions):
-    settings_dump = settings.model_dump()
-    settings_dump["ACTIONS"] = actions
-    action = Action.create(action_type="upload", settings=json.dumps(settings_dump))
     if actions == "all":
-        articles = (
-            Article.select()
-            .join(Action)
-            .where(
-                Article.article_type == settings.ARTICLE_TYPE,
-                Article.is_complete,
-                Article.is_succesful,
-                Article.is_published == False,
-            )
+        articles = Article.select().where(
+            # Article.is_complete,
+            Article.is_published
+            == False,
         )
     elif actions == "reupload":
-        articles = (
-            Article.select()
-            .join(Action)
-            .where(
-                Article.article_type == settings.ARTICLE_TYPE,
-                Article.is_complete,
-                Article.is_succesful,
-                Article.is_published,
-            )
+        articles = Article.select().where(
+            # Article.is_complete,
+            Article.is_published,
         )
     else:
-        articles = (
-            Article.select()
-            .join(Action)
-            .where(
-                Action.uuid == action,
-                Article.article_type == settings.ARTICLE_TYPE,
-                Article.is_complete,
-                Article.is_succesful,
-                Article.is_published == False,
-            )
-        )
+        raise Exception("invalid")
+
     logger.info(f"Uploading {len(articles)} articles")
 
     session = create_session()
 
     categorie_dict = {}
-    categories = Categorie.select()
+
+    categories_db = Article.select(Article.category).distinct()
+    categories = [value[0] for value in categories_db.tuples()]
 
     for cat in categories:
-        term = cat.term
         cat_data = dict(
-            slug=generate_seo_friendly_url(term),
-            name=term,
+            slug=generate_slug(cat),
+            name=cat,
         )
         responce, success, categorie_id = create_categorie_request(session, cat_data)
         if not success:
             logger.error(responce.json())
             raise Exception("failed creating categorie")
-        categorie_dict[term] = categorie_id
+        categorie_dict[cat] = categorie_id
 
     logger.info(f"Uploaded {len(categories)} categories")
 

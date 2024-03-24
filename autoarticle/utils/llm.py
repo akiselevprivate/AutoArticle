@@ -17,7 +17,10 @@ rate_limiter = RateLimiter()
 
 @rate_limiter.request
 def llm_completion(
-    prompt: str, max_tokens: int, return_json: bool = False, model: str = None
+    prompt: str,
+    max_tokens: int,
+    return_json: bool = False,
+    model: str = None,
 ):
     chat_params = dict(
         model=model if model else MODEL,

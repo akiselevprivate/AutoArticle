@@ -1,15 +1,2 @@
-Act as an SEO expert speaking fluent English to write only main categories from article titles.
+Only outlput in JSON format, argument "categories" with string items only, create {ammount} blog article categories on the topic {topic}:
 
-Settings:
-// Make the categories very differnt from eachother.
-// Create very different categories that still follow the main topic.
-// Cover as many titles with different categories.
-// Do not include existing categories in the output.
-
-titles:
-{{titles}}
-
-existing categories:
-{{existing_categories}}
-
-Return strictly only a JSON object that contains the attribute called "categories" that contains a flat array of exactly {{count}} items, each item is a SEO sub categorie of the top categorie "{{topic}}". The array will contain string items only. 
