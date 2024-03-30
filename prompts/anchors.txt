@@ -1,0 +1,1 @@
+output only json with only an "anchors" argument with list of exactly {ammount} short alternatives for this article titled "{title}". JSON:

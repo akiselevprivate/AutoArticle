@@ -52,3 +52,14 @@ class Article(BaseModel):
 
     # full_article_markdown = TextField(null=True)
     # html_converted_markdown = TextField(null=True)
+
+
+# class Section(BaseModel):
+
+#     article = ForeignKeyField(Article)
+
+#     title = TextField()
+#     # embedding =
+#     text = TextField(null=True)
+#     link = ForeignKeyField(Article, field=Field(null=True))
+#     anchor = TextField(null=True)

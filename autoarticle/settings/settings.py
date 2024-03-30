@@ -16,8 +16,8 @@ class Settings:
 
     WP_USER: str
     WP_APPLICATION_PASSWORD: str
-
     SITE_URL: str
+    SUFFIX_URL: str
 
     SQLITE_DB_FILE: str
 
@@ -25,6 +25,7 @@ class Settings:
     SECTION_PROMPT_FILE: str
     TITLE_PROMPT_FILE: str
     CATEGORIES_PROMPT_FILE: str
+    ANCHORS_PROMPT_FILE: str
 
     # Article generation
 
@@ -38,8 +39,6 @@ class Settings:
 
     REMOVE_TOP_H2: bool
 
-    # UPLOAD_WITH_FAQ: bool
-    UPLOAD_WITH_TITLE: bool
     PUBLISH_STATUS: str
 
     IMAGE_GENERATION_PROMPT_FILE: str

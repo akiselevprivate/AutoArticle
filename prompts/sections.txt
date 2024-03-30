@@ -6,11 +6,11 @@ In the outline ## are the section titles.
 Full article Outline:
 {full_outline}
 
-Include a single only the provided link in the middle of the text, never as a refference. the message should be describing the linking article. Message example: "How to create good content". Use message example instead of "Read more" or "article". Use this syntax for link: [message](1).
+Include a (single) link only. Include the provided link in the middle of the text, never as a refference. the message should be describing the linking article. Message example: "How to create good content". Use message example instead of "Read more" or "article". Use this syntax for link: [message](1).
 
 Create 3-4 subheadings using ###. Or number the subehadings. Use facts and case studies to prove your points. Write in an informal tone. Avoid conclusions. Be as simple and comprehensive as you can. Use easy words. Write small and easily understandable sentences. 
-To diversify include small bullet points. Keep the paragraps small. 
+To diversify include small bullet points. Keep the paragraps small and easy to read.
 
-In the content you have too include the link to article titled: "{linking_article_title}", with id of 1. 
+In the content you have too include a single link to article titled: "{linking_article_title}", with id of 1. 
 You are writing a section of an article titled: "{title}",
 Write about 300 word section using Markdown language, the section titled: "## {section_title}".

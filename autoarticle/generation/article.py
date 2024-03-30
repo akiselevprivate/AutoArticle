@@ -34,7 +34,6 @@ def generate_section(
     title: str, section: str, linking_title: str, section_titles: list[str]
 ) -> str:
     full_outline_text = create_text_section_outline(section_titles)
-    print(title)
     prompt = (
         prompts.SECTION.replace(r"{title}", title)
         .replace(r"{linking_article_title}", linking_title)

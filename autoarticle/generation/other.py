@@ -48,3 +48,8 @@ def generate_titles(topic: str, category: str, ammount: int) -> list[str]:
         raise Exception("error generating titles")
     titles_list = titles_dict["titles"]
     return titles_list
+
+
+def generate_anchors(title: str, ammount: int):
+    
+    json_llm_completion()

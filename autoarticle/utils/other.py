@@ -1,6 +1,6 @@
 import json
 import uuid as uuid_pkg
-import markdown as markdown_pkg
+import markdown2
 import re
 import requests
 from io import BytesIO
@@ -24,7 +24,7 @@ def replace_urls_in_markdown(input_string, new_url):
 
 
 def markdown_to_html(markdown_str: str):
-    html = markdown_pkg.markdown(markdown_str)
+    html = markdown2.markdown(markdown_str)
     return html
 
 

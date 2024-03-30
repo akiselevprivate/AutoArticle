@@ -1,2 +1,2 @@
-Only outlput in JSON format, argument "categories" with string items only, create {ammount} blog article categories on the topic {topic}:
+Only output in JSON format, argument "categories" with string items only, create {ammount} blog article categories on the topic {topic}:
 

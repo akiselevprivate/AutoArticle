@@ -2,11 +2,10 @@ from db.models import Article
 import json
 
 
-articles = Article.select()
+articles: list[Article] = Article.select()
 
-data = []
 for a in articles:
-    data.append(a.title)
+    a.embedding_complete = False
+    a.interlinking_uuids = None
 
-
-json.dump(data, open("vector.json", "w+"))
+    a.save()

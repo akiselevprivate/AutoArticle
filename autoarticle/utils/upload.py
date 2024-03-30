@@ -26,15 +26,16 @@ def upload_article_request(session: requests.Session, article_data: dict):
 
 def create_article_markdown(article: Article):
     markdown_components = []
-    if settings.UPLOAD_WITH_TITLE:
-        markdown_components.append(f"# {article.title}")
+    # if settings.UPLOAD_WITH_TITLE:
+    #     markdown_components.append(f"# {article.title}")
     for section, section_markdown, linking_uuid in zip(
         article.section_titles, article.sections, article.interlinking_uuids
     ):
         markdown_components.append(f"## {section}")
 
         linking_article_slug = Article.get_by_id(linking_uuid).slug
-        linking_article_link = settings.SITE_URL + linking_article_slug + "/"
+        suffix = settings.SUFFIX_URL + "/" if settings.SUFFIX_URL else ""
+        linking_article_link = "/" + suffix + linking_article_slug + "/"
 
         section_markdown = remove_title_from_markdown(section_markdown)
 
@@ -45,13 +46,9 @@ def create_article_markdown(article: Article):
             section_markdown, linking_article_link
         )
 
-        section_markdown = section_markdown.replace(r"–", "-")
+        section_markdown = section_markdown.replace(r"–", "-").replace(r" - ", "    - ")
 
         markdown_components.append(section_markdown)
-
-    # if settings.UPLOAD_WITH_FAQ:
-    #     faq_markdown = create_faq_block(json.loads(article.faq_json))
-    #     markdown_components.append(faq_markdown)
 
     full_markdown = "\n".join(markdown_components)
     return full_markdown
@@ -75,14 +72,6 @@ def create_categorie_request(session: requests.Session, categorie_data: dict):
     return responce, success, categorie_id
 
 
-def create_faq_block(faq_content: list):
-    content = ["## FAQ"]
-    for question, answer in faq_content:
-        content.append(f"### {question}")
-        content.append(answer)
-    return "\n".join(content)
-
-
 def upload_media(session: requests.Session, file_path: str):
     media = {"file": open(file_path, "rb")}
     url = settings.SITE_URL + "wp-json/wp/v2/media"
@@ -102,7 +91,7 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
         "slug": article.slug,
         "content": content_html,
         "categories": categorie_ids,
-        "status": "private",
+        "status": settings.PUBLISH_STATUS,
     }
 
     if article.image_generated:

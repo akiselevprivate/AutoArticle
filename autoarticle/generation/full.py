@@ -82,6 +82,8 @@ def continue_articles(
             article.interlinking_uuids = linking_article_uuids
             article.save()
 
+    
+
     logger.info(f"Created linkings.")
 
     for idx, article in enumerate(articles):
@@ -89,9 +91,10 @@ def continue_articles(
             logger.info(f"Generating article: {article.title}")
             section_titles = article.section_titles
             section_mds = []
-            for section, linking_title in zip(
+            for section, linking_uuid in zip(
                 section_titles, article.interlinking_uuids
             ):
+                linking_title = Article.get_by_id(linking_uuid).title
                 section_md = generate_section(
                     article.title, section, linking_title, section_titles
                 )
