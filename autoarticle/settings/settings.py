@@ -36,8 +36,7 @@ class Settings:
     CATEGORIES_COUNT: int
 
     INVALID_JSON_TRIES: int
-
-    REMOVE_TOP_H2: bool
+    MAX_SECTION_RETRIES: int
 
     PUBLISH_STATUS: str
 
@@ -50,6 +49,7 @@ class Settings:
     IMAGE_MODEL: str
     IMAGE_HEIGHT: int
     IMAGE_WIDTH: int
+    UPSCALE_STEPS: int
     IMAGE_NEGATIVE_PROMPT: str
     IMAGE_INFERENCE_STEPS: int
 

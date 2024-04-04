@@ -1,1 +1,1 @@
-image of {image_description}, ((adobe illustrator)) thumbnail, detailed, high quality, blog, website, article, colorful
+{image_description} detailed sketch colourful

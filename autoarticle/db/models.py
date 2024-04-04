@@ -34,19 +34,13 @@ class Article(BaseModel):
 
     embedding_complete = BooleanField(default=False)
 
-    section_titles = JSONField(null=True)
-    sections = JSONField(null=True)
-
-    interlinking_uuids = JSONField(null=True)
+    outline_generated = BooleanField(default=False)
+    interlinking_uuids_generated = BooleanField(default=False)
 
     image_description = TextField(null=True)
     image_generated = BooleanField(default=False)
 
-    outline_tokens_used = IntegerField(null=True)
-    sections_tokens_used = IntegerField(null=True)
-
     is_complete = BooleanField(default=False)
-    is_succesful = BooleanField(default=False)
     is_published = BooleanField(default=False)
     # article_deleted = BooleanField(default=False)
 
@@ -54,12 +48,17 @@ class Article(BaseModel):
     # html_converted_markdown = TextField(null=True)
 
 
-# class Section(BaseModel):
+class Section(BaseModel):
 
-#     article = ForeignKeyField(Article)
+    article = ForeignKeyField(Article)
 
-#     title = TextField()
-#     # embedding =
-#     text = TextField(null=True)
-#     link = ForeignKeyField(Article, field=Field(null=True))
-#     anchor = TextField(null=True)
+    title = TextField()
+    idx = IntegerField()
+    # embedding =
+    markdown = TextField(null=True)
+    link = ForeignKeyField(Article, null=True)
+    anchor = TextField(null=True)
+
+    generated_anchors = JSONField(null=True)
+    generated_links_count = IntegerField(null=True)
+    word_count = IntegerField(null=True)

@@ -21,6 +21,10 @@ def llm_completion(
     max_tokens: int,
     return_json: bool = False,
     model: str = None,
+    temperature: float = 1,
+    top_p: float = 1,
+    frequency_penalty: float = 0,
+    presence_penalty: float = 0,
 ):
     chat_params = dict(
         model=model if model else MODEL,
@@ -31,10 +35,10 @@ def llm_completion(
             }
         ],
         max_tokens=max_tokens,
-        temperature=1,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0,
+        temperature=temperature,
+        top_p=top_p,
+        frequency_penalty=frequency_penalty,
+        presence_penalty=presence_penalty,
     )
 
     if return_json:
@@ -53,6 +57,10 @@ def json_llm_completion(
     model: str = None,
     throw_exception: bool = False,
     other_checks_func: Callable = None,
+    temperature: float = 1,
+    top_p: float = 1,
+    frequency_penalty: float = 0,
+    presence_penalty: float = 0,
 ):
     tries_count = 0
     all_usages = []
@@ -60,7 +68,14 @@ def json_llm_completion(
         tries_count += 1
         logger.debug(f"Completion try: {tries_count}")
         completion, usage = llm_completion(
-            prompt, max_tokens, return_json=True, model=model
+            prompt,
+            max_tokens,
+            return_json=True,
+            model=model,
+            temperature=temperature,
+            top_p=top_p,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
         )
         all_usages.append(usage)
         try:

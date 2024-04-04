@@ -16,13 +16,12 @@ import json
 def upload(actions):
     if actions == "all":
         articles = Article.select().where(
-            # Article.is_complete,
-            Article.is_published
-            == False,
+            Article.is_complete,
+            Article.is_published == False,
         )
     elif actions == "reupload":
         articles = Article.select().where(
-            # Article.is_complete,
+            Article.is_complete,
             Article.is_published,
         )
     else:

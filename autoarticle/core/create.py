@@ -38,8 +38,12 @@ def new():
 
 
 @create.command()
-def existing():
+@click.option("-c", "--count", "count", default=None)
+def existing(count: int):
     articles = Article.select().where(Article.is_complete == False)
+
+    if count:
+        articles = articles.limit(int(count))
 
     articles = continue_articles(
         articles,

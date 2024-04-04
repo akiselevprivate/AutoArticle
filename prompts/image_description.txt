@@ -1,7 +1,2 @@
-i need to describe in a single keyword the main topic of an article. Get the most meningful part of the title as a keyword.  Then i need to create an image keyword.
-
-For example:
-the title: "How to earn money using cryptocurrency and trading" the image keyword would be "computer Cryptocurrency trading stocks"
-
-Output excactly only the keyword, nothing else.
-Using the task and exmaple write me only the image keyword about this article title: "{title}"
+In the description only describe the main / defining objects in the image, dense information, dont use a lot of advectives. 
+Write a very short description of an image for an article with title: "{title}", only description:

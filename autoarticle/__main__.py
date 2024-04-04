@@ -1,6 +1,6 @@
 import click
 from core.create import create
-
+from core.info import info
 from core.upload import upload
 
 # import asyncio
@@ -25,6 +25,7 @@ def cli():
 
 cli.add_command(create)
 cli.add_command(upload)
+cli.add_command(info)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,8 @@ import requests
 from io import BytesIO
 from PIL import Image
 from settings.logger import logger
+from db.models import Article, Section
+from utils.other import LINK_PATTERN
 
 
 def generate_slug(text: str):
@@ -45,3 +47,22 @@ def save_image_from_url(url, output_path):
             f"Failed to retrieve the image. Status code: {response.status_code}"
         )
         return False
+
+
+def get_sections(article_uuid: str):
+    sections = (
+        Section.select()
+        .where(Section.article == article_uuid)
+        .order_by(Section.idx.asc())
+    )
+    return sections
+
+
+def anchor_matches(text: str):
+
+    matches = re.findall(LINK_PATTERN, text)
+
+    # Extract group 1 from each match
+    anchor_matches = [match[0] for match in matches]
+
+    return anchor_matches

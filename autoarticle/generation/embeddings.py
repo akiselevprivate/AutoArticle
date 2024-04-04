@@ -1,5 +1,7 @@
 import chromadb
 import chromadb.utils.embedding_functions as embedding_functions
+from chromadb.config import Settings
+
 import uuid as uuid_pkg
 
 from settings.settings import settings
@@ -9,7 +11,9 @@ openai_ef = embedding_functions.OpenAIEmbeddingFunction(
     api_key=settings.OPENAI_KEY, model_name=settings.EMBEDDINGS_OPENAI_MODEL
 )
 
-client = chromadb.PersistentClient(path="vectors")
+client = chromadb.PersistentClient(
+    path="vectors", settings=Settings(anonymized_telemetry=False)
+)
 
 
 collection = client.get_or_create_collection(

@@ -1,5 +1,5 @@
 from settings.settings import settings
-from db.models import Article
+from db.models import Article, Section
 from utils.other import (
     replace_urls_in_markdown,
     remove_first_h2_markdown,
@@ -7,6 +7,8 @@ from utils.other import (
     markdown_to_html,
 )
 from settings.logger import logger
+
+from generation.utils import get_sections, generate_slug
 
 import json
 import requests
@@ -28,19 +30,20 @@ def create_article_markdown(article: Article):
     markdown_components = []
     # if settings.UPLOAD_WITH_TITLE:
     #     markdown_components.append(f"# {article.title}")
-    for section, section_markdown, linking_uuid in zip(
-        article.section_titles, article.sections, article.interlinking_uuids
-    ):
-        markdown_components.append(f"## {section}")
+    sections: list[Section] = get_sections(article.id)
+    for section in sections:
+        markdown_components.append(f"## {section.title}")
 
-        linking_article_slug = Article.get_by_id(linking_uuid).slug
+        linking_article_slug = section.link.slug
         suffix = settings.SUFFIX_URL + "/" if settings.SUFFIX_URL else ""
         linking_article_link = "/" + suffix + linking_article_slug + "/"
 
-        section_markdown = remove_title_from_markdown(section_markdown)
+        section_markdown = remove_title_from_markdown(section.markdown)
 
-        if settings.REMOVE_TOP_H2:
-            section_markdown = remove_first_h2_markdown(section_markdown)
+        section_markdown = remove_first_h2_markdown(section_markdown)
+
+        # if settings.REMOVE_TOP_H3:
+        #     section_markdown = remove_first_h3_markdown(section_markdown)
 
         section_markdown = replace_urls_in_markdown(
             section_markdown, linking_article_link
@@ -72,11 +75,12 @@ def create_categorie_request(session: requests.Session, categorie_data: dict):
     return responce, success, categorie_id
 
 
-def upload_media(session: requests.Session, file_path: str):
-    media = {"file": open(file_path, "rb")}
+def upload_media(session: requests.Session, file_path: str, alt_text: str):
+    media = {"file": open(file_path, "rb"), "alt_text": alt_text, "title": alt_text}
     url = settings.SITE_URL + "wp-json/wp/v2/media"
     response = session.post(url, files=media)
     featured_image_id = response.json().get("id")
+    assert featured_image_id != None
     return featured_image_id
 
 
@@ -95,8 +99,12 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
     }
 
     if article.image_generated:
-        media_file_path = f"{settings.IMAGE_PATH}/{str(article.id)}.png"
-        featured_image_id = upload_media(session, media_file_path)
+        media_file_path = f"{settings.IMAGE_PATH}/{str(article.id)}.webp"
+        featured_image_id = upload_media(
+            session,
+            media_file_path,
+            article.image_description,
+        )
         post_data["featured_media"] = featured_image_id
 
     responce, success = upload_article_request(session, post_data)
