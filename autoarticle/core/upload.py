@@ -43,7 +43,7 @@ def upload(actions):
     else:
         raise Exception("invalid")
 
-    logger.info(f"Uploading {len(articles)} articles")
+    logger.info(f"Uploading {len(articles)} articles to {settings.SITE_URL}")
 
     session = create_session()
 

@@ -40,6 +40,8 @@ class Article(BaseModel):
     outline_generated = BooleanField(default=False)
     interlinking_uuids_generated = BooleanField(default=False)
 
+    additional_anchors = JSONField(default=[])
+
     image_description = TextField(null=True)
     image_generated = BooleanField(default=False)
 

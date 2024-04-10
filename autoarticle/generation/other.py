@@ -52,9 +52,14 @@ def generate_titles(topic: str, category: str, ammount: int) -> list[str]:
     return titles_list
 
 
-def generate_anchors(title: str, ammount: int):
+def generate_anchors(title: str, ammount: int, existing_anchors: list[str]):
+
+    additional_anchors_ammount = int(len(existing_anchors) * 0.2)
+
+    logger.info(f"Generating additional {additional_anchors_ammount} anchors")
+
     prompt = prompts.ANCHOR.replace(r"{title}", title).replace(
-        r"{ammount}", str(ammount)
+        r"{ammount}", str(ammount + additional_anchors_ammount)
     )
 
     def test_dict_output(dict_completion):
@@ -63,13 +68,20 @@ def generate_anchors(title: str, ammount: int):
             and len(dict_completion["anchors"]) >= ammount
         )
 
-    anchors_dict, all_usages = json_llm_completion(
-        prompt, 500, other_checks_func=test_dict_output, temperature=0.7
-    )
+    for _ in range(settings.MAX_ANCHOR_RETRIES):
 
-    anchors = anchors_dict["anchors"][:ammount]
+        anchors_dict, all_usages = json_llm_completion(
+            prompt, 500, other_checks_func=test_dict_output
+        )
 
-    return anchors
+        anchors = anchors_dict["anchors"]
+
+        unique_anchors = [a for a in anchors if a not in existing_anchors]
+
+        if len(unique_anchors) >= ammount:
+            return unique_anchors
+
+    raise Exception("To many retries for unique anchors")
 
 
 def generate_addiional_data(title: str):

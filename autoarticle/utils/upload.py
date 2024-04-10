@@ -114,7 +114,7 @@ def upload_media(session: requests.Session, file_path: str, alt_text: str):
         url, data=multipart_data, headers={"Content-Type": multipart_data.content_type}
     )
     featured_image_id = response.json().get("id")
-    json.dump(response.json(), open("upload.json", "w+"))
+    # json.dump(response.json(), open("upload.json", "w+"))
 
     if featured_image_id == None:
         logger.error(response.json())

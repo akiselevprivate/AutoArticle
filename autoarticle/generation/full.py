@@ -167,7 +167,7 @@ def continue_articles(
 
     anchor_generation_count = 0
     anchors_count = 0
-    all_articles = Article.select()
+    all_articles: list[Article] = Article.select()
     for article in all_articles:
         sections = Section.select().where(
             Section.anchor == None,
@@ -175,15 +175,44 @@ def continue_articles(
             Section.include_link == True,
         )
         if sections.count() > 0:
-            anchor_generation_count += 1
-            anchors_count += sections.count()
-            anchors = generate_anchors(article.title, ammount=sections.count())
-            existing_anchor_sections = [
-                s.anchor for s in Section.select().where(Section.link == article)
-            ]
-            for section, anchor in zip(sections, anchors):
-                if anchor in existing_anchor_sections:
-                    logger.error("Duplicate anchor")  # TODO
+
+            req_anchors_ammount = sections.count()
+
+            genrate_anchors_ammount = req_anchors_ammount - len(
+                article.additional_anchors
+            )
+
+            additional_anchors_left = (
+                len(article.additional_anchors) - req_anchors_ammount
+            )
+
+            if genrate_anchors_ammount > 0:
+                existing_anchors = [
+                    s.anchor
+                    for s in Section.select().where(
+                        Section.link == article, Section.anchor != None
+                    )
+                ]
+
+                anchors = generate_anchors(
+                    article.title, genrate_anchors_ammount, existing_anchors
+                )
+                anchor_generation_count += 1
+                anchors_count += genrate_anchors_ammount
+
+                use_anchors = (
+                    anchors[:genrate_anchors_ammount]
+                    + article.additional_anchors[:additional_anchors_left]
+                )
+                save_anchors = (
+                    anchors[genrate_anchors_ammount:]
+                    + article.additional_anchors[additional_anchors_left:]
+                )
+
+                article.additional_anchors = save_anchors
+                article.save()
+
+            for section, anchor in zip(sections, use_anchors):
                 section.anchor = anchor
                 section.save()
 

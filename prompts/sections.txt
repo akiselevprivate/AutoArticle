@@ -12,13 +12,14 @@ Requirements:
 
 {link_req}
 Create 2-3 subheadings using ###.
-Always use ### for subheadings.
+Always use ### prefix for subheadings.
 Use subheadings to sparate paragraphs.
 
 Include small bullet point lists to separate paragraphs.
 Keep the paragraps small and informative.
 Never use breaks (---).
 Never have conclusions.
+Never add comments, notes or sources.
 
 Use all the Additional Section Info provided.
 

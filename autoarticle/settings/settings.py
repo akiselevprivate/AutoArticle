@@ -61,6 +61,7 @@ class Settings:
 
     INVALID_JSON_TRIES: int = 3
     MAX_SECTION_RETRIES: int = 3
+    MAX_ANCHOR_RETRIES: int = 2
 
     def model_dump(self):
         return asdict(self)
