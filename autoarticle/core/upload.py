@@ -19,10 +19,26 @@ def upload(actions):
             Article.is_complete,
             Article.is_published == False,
         )
+        categories_db = (
+            Article.select(Article.category)
+            .where(
+                Article.is_complete,
+                Article.is_published == False,
+            )
+            .distinct()
+        )
     elif actions == "reupload":
         articles = Article.select().where(
             Article.is_complete,
             Article.is_published,
+        )
+        categories_db = (
+            Article.select(Article.category)
+            .where(
+                Article.is_complete,
+                Article.is_published,
+            )
+            .distinct()
         )
     else:
         raise Exception("invalid")
@@ -33,7 +49,6 @@ def upload(actions):
 
     categorie_dict = {}
 
-    categories_db = Article.select(Article.category).distinct()
     categories = [value[0] for value in categories_db.tuples()]
 
     for cat in categories:
@@ -50,15 +65,17 @@ def upload(actions):
     logger.info(f"Uploaded {len(categories)} categories")
 
     uploaded_articles = []
-    for article in articles:
-        try:
-            uploaded_article, success = upload_article(article, session, categorie_dict)
+    for idx, article in enumerate(articles):
+        # try:
+        uploaded_article, success = upload_article(article, session, categorie_dict)
 
-            uploaded_articles.append(uploaded_article)
-            logger.info(f"successfully uploaded article: {uploaded_article.title}")
-        except Exception as e:
-            logger.error(e)
-            logger.error(f"failed to upload article: {article.title}")
+        uploaded_articles.append(uploaded_article)
+        logger.info(
+            f"successfully uploaded article: {uploaded_article.title}, ({idx+1}/{len(articles)})"
+        )
+        # except Exception as e:
+        #     logger.error(e)
+        #     logger.error(f"failed to upload article: {article.title}")
 
     logger.info(
         f"successfully uploaded {len(uploaded_articles)}/{len(articles)} articles"

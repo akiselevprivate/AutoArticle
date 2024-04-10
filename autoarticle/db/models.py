@@ -32,6 +32,9 @@ class Article(BaseModel):
     slug = TextField(unique=True)
     category = TextField()
 
+    additional_data = TextField(null=True)
+    additional_data_split = BooleanField(default=False)
+
     embedding_complete = BooleanField(default=False)
 
     outline_generated = BooleanField(default=False)
@@ -54,11 +57,14 @@ class Section(BaseModel):
 
     title = TextField()
     idx = IntegerField()
+    include_link = BooleanField()
+
+    additional_data = TextField(null=True)
+
     # embedding =
     markdown = TextField(null=True)
     link = ForeignKeyField(Article, null=True)
     anchor = TextField(null=True)
 
-    generated_anchors = JSONField(null=True)
-    generated_links_count = IntegerField(null=True)
+    generated_anchor = TextField(null=True)
     word_count = IntegerField(null=True)

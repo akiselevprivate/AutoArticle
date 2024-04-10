@@ -7,6 +7,8 @@ from settings.logger import logger
 from db.models import Article, Section
 from utils.other import LINK_PATTERN
 
+import random
+
 
 def generate_slug(text: str):
     # Convert to lowercase
@@ -66,3 +68,23 @@ def anchor_matches(text: str):
     anchor_matches = [match[0] for match in matches]
 
     return anchor_matches
+
+
+def generate_random_bool_list(length: int, number_of_trues: int):
+    bool_list = [False] * length
+    true_indices = random.sample(
+        range(length), number_of_trues
+    )  # Select x random indices
+    for index in true_indices:
+        bool_list[index] = True
+    return bool_list
+
+
+def split_paragraphs(text):
+    if '\n\n' in text:
+        paragraphs = text.split('\n\n')
+    elif '\n' in text:
+        paragraphs = text.split('\n')
+    else:
+        paragraphs = text.splitlines()
+    return paragraphs

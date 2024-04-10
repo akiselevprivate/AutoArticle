@@ -38,30 +38,55 @@ def add_linking_embeddings(
     collection.add(documents=docs, metadatas=meta, ids=ids)
 
 
-def get_best_title(title: str, section: str, not_include_titles):
+def get_section_data(title: str, section: str, sections_count: int):
+
+    not_include_titles = []
     doc = collection.get(
         where_document={"$contains": f"{title}; {section}"},
         include=["embeddings"],
     )["embeddings"][0]
 
-    q = collection.query(
-        query_embeddings=[doc],
-        n_results=1,
-        where={"title": {"$nin": [title] + not_include_titles}},
-    )
-
-    res_title = q["metadatas"][0][0]["title"]
-    res_uuid = q["metadatas"][0][0]["uuid"]
-
-    return res_title, res_uuid
-
-
-def get_linking_articles(title: str, sections: list) -> tuple[list[str], list[str]]:
-    titles = []
+    distances = []
     uuids = []
-    for section in sections:
-        res_title, res_uuid = get_best_title(title, section, titles)
-        titles.append(res_title)
-        uuids.append(res_uuid)
 
-    return titles, uuids
+    for _ in range(sections_count):
+        q = collection.query(
+            query_embeddings=[doc],
+            n_results=1,
+            where={"title": {"$nin": [title] + not_include_titles}},
+        )
+        not_include_titles.append(q["metadatas"][0][0]["title"])
+        distances.append(q["distances"][0][0])
+        uuids.append(q["metadatas"][0][0]["uuid"])
+
+    return distances, uuids
+
+
+def get_linking_articles(
+    title: str, sections: list[str]
+) -> tuple[list[str], list[str]]:
+
+    data = []
+
+    for idx, section in zip(range(len(sections)), sections):
+        distances, uuids = get_section_data(title, section, len(sections))
+        for d, u in zip(distances, uuids):
+            data.append([idx, u, d])
+
+    data.sort(key=lambda x: x[2], reverse=True)  # sort distances
+
+    unique_sections = []
+    unique_uuids = []
+    unique_sections_data = []
+
+    for item in data:
+        if item[0] not in unique_sections and item[1] not in unique_uuids:
+            unique_sections.append(item[0])
+            unique_uuids.append(item[1])
+            unique_sections_data.append(item)
+
+    unique_sections_data.sort(key=lambda x: x[0])  # sort sections
+
+    uuids = [d[1] for d in unique_sections_data]
+
+    return uuids

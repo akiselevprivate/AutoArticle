@@ -1,1 +1,1 @@
-output only json with only an "anchors" argument with list of exactly {ammount} items. Of minimum 3 word, maximum 4 word, very short anchors with exactly thesame keywords as this article title: "{title}". JSON:
+output only json with only an "anchors" argument with list of exactly {ammount} items. Of minimum 3 word, maximum 5 word, very short anchors with thesame main keywords and meaning as this article title: "{title}". JSON:

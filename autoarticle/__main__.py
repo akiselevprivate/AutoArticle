@@ -2,6 +2,8 @@ import click
 from core.create import create
 from core.info import info
 from core.upload import upload
+from db.manage import create_db
+from db.models import db_obj
 
 # import asyncio
 # import signal
@@ -29,4 +31,5 @@ cli.add_command(info)
 
 
 if __name__ == "__main__":
+    create_db(db_obj)
     cli()

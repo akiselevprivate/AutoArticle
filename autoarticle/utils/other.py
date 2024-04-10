@@ -7,6 +7,8 @@ from io import BytesIO
 from PIL import Image
 from settings.logger import logger
 
+from bs4 import BeautifulSoup
+
 
 def extract_json(string: str) -> dict:
     json_string = string[string.find("{") : string.rfind("}") + 1]
@@ -52,32 +54,71 @@ def remove_first_h2_markdown(markdown_str: str):
     return result
 
 
-def count_words_in_markdown(markdown):
-    text = markdown
+def remove_duplicate_h3(markdown_str: str, section_title: str):
+    lines = markdown_str.split("\n")
+    if lines[0].startswith("###") and lines[0][:3].strip() == section_title.strip():
+        del lines[0]
 
+    result = "\n".join(lines)
+    return result
+
+
+def remove_first_h3(markdown_str: str):
+    lines = markdown_str.split("\n")
+    if lines[0].startswith("###"):
+        del lines[0]
+
+    result = "\n".join(lines)
+    return result
+
+
+def clean_markdown(markdown: str):
     # Comments
-    text = re.sub(r"<!--(.*?)-->", "", text, flags=re.MULTILINE)
+    markdown = re.sub(r"<!--(.*?)-->", "", markdown, flags=re.MULTILINE)
     # Tabs to spaces
-    text = text.replace("\t", "    ")
+    markdown = markdown.replace("\t", "    ")
     # More than 1 space to 4 spaces
-    text = re.sub(r"[ ]{2,}", "    ", text)
+    markdown = re.sub(r"[ ]{2,}", "    ", markdown)
     # Footnotes
-    text = re.sub(r"^\[[^]]*\][^(].*", "", text, flags=re.MULTILINE)
+    markdown = re.sub(r"^\[[^]]*\][^(].*", "", markdown, flags=re.MULTILINE)
     # Indented blocks of code
-    text = re.sub(r"^( {4,}[^-*]).*", "", text, flags=re.MULTILINE)
+    markdown = re.sub(r"^( {4,}[^-*]).*", "", markdown, flags=re.MULTILINE)
     # Custom header IDs
-    text = re.sub(r"{#.*}", "", text)
+    markdown = re.sub(r"{#.*}", "", markdown)
     # Replace newlines with spaces for uniform handling
-    text = text.replace("\n", " ")
+    markdown = markdown.replace("\n", " ")
     # Remove images
-    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)
+    markdown = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", markdown)
     # Remove HTML tags
-    text = re.sub(r"</?[^>]*>", "", text)
+    markdown = re.sub(r"</?[^>]*>", "", markdown)
     # Remove special characters
-    text = re.sub(r"[#*`~\-–^=<>+|/:]", "", text)
+    markdown = re.sub(r"[#*`~\-–^=<>+|/:]", "", markdown)
     # Remove footnote references
-    text = re.sub(r"\[[0-9]*\]", "", text)
+    markdown = re.sub(r"\[[0-9]*\]", "", markdown)
     # Remove enumerations
-    text = re.sub(r"[0-9#]*\.", "", text)
+    markdown = re.sub(r"[0-9#]*\.", "", markdown)
 
-    return len(text.split())
+    return markdown
+
+
+def count_words_in_markdown(markdown: str):
+    clean = clean_markdown(markdown)
+
+    return len(clean.split())
+
+
+def markdown_to_text(markdown_string):
+    """Converts a markdown string to plaintext"""
+
+    # md -> html -> text since BeautifulSoup can extract text cleanly
+    html = markdown_to_html(markdown_string)
+
+    # remove code snippets
+    html = re.sub(r"<pre>(.*?)</pre>", " ", html)
+    html = re.sub(r"<code>(.*?)</code >", " ", html)
+
+    # extract text
+    soup = BeautifulSoup(html, "html.parser")
+    text = "".join(soup.findAll(string=True))
+
+    return re.sub(r"\[\d+\]", "", text)

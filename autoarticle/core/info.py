@@ -27,20 +27,13 @@ def anchors():
 
         for s in sections:
             c += 1
-            if len(s.generated_anchors) == 0:
+            if not s.generated_anchor:
                 cn += 1
-            elif s.generated_anchors[0].lower() != s.anchor.lower():
+            elif s.generated_anchor.lower() != s.anchor.lower():
                 cw += 1
-                print(f"Anchor not matched: {s.anchor} --- {s.generated_anchors[0]}")
+                print(f"Anchor not matched: {s.anchor} --- {s.generated_anchor}")
 
-            data.append(
-                [
-                    s.article.title,
-                    s.link.title,
-                    s.anchor,
-                    s.generated_anchors[0] if s.generated_anchors else None,
-                ]
-            )
+            data.append([s.article.title, s.link.title, s.anchor, s.generated_anchor])
 
     df = pd.DataFrame(
         data, columns=["From article", "To article", "Anchor", "Generated Anchor"]
@@ -69,7 +62,7 @@ def links():
     print("How many incoming link each article has:")
     for result in query:
         counts.append(result.count)
-        print(f"Value: {result.link}, Count: {result.count}")
+        print(f"Article Id: {result.link}, Count: {result.count}")
 
     print(f"max: {max(counts)}, min: {min(counts)}")
 

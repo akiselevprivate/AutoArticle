@@ -1,5 +1,7 @@
-For titles: be Unique. Be Useful. Be Urgent. Be Ultra-Specific.
-Keep the titles under 70 chars.
-Dont include year in teh title.
+Generate very simple, undestandable titles based on hot topics.
+Keep the titles short, under 70 chars.
+Never include numbers and dates in the title.
 
-In JSON format with "titles" argument with flat array of string items, create {ammount} blog article titles on the topic {topic} with the category {category}:
+NEVER include fluff, or other words taht dont add information.
+
+In JSON format with only a "titles" argument with flat array of string items, create {ammount} blog article titles on the topic {topic} of the category {category}:

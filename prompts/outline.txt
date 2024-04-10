@@ -1,13 +1,12 @@
-Act as an SEO expert speaking fluent English to write an outline for an article.
+Additional Article information:
+***
+{data}
+***
 
-Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {sections_ammount} items, each item is a string (h2) section heading of the article.
+Act as a SEO expert.
+Using the information above split the article in to {sections_ammount} sections.
 
-complete this JSON as the output:
-{
-  "outline": [
-    "<Section Heading (h2)>",
-    ...
-  ]
-}
+Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {sections_ammount} string items, each item is a string (h2) section heading of the article.
 
-Generate a JSON outline for an article titled: "{title}".
+Article theme is {topic}. Article category is {category}.
+Generate a JSON outline for an article titled: "{title}", JSON:

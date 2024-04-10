@@ -1,47 +1,30 @@
 from dotenv import load_dotenv
-from dataclasses import dataclass, asdict, fields
+from dataclasses import dataclass, asdict, fields, _MISSING_TYPE
 import os
 
 
 @dataclass
 class Settings:
-    # model_config = SettingsConfigDict(case_sensitive=False, env_file=".env")
 
     OPENAI_KEY: str
-    OPENAI_MINUTE_RATE_LIMIT: int
-    OPENAI_MINUTE_TOKEN_RATE_LIMIT: int
-
-    PRICE_PER_THOUSAND_INPUT_TOKENS: float
-    PRICE_PER_THOUSAND_OUTPUT_TOKENS: float
 
     WP_USER: str
     WP_APPLICATION_PASSWORD: str
     SITE_URL: str
-    SUFFIX_URL: str
 
     SQLITE_DB_FILE: str
-
-    OUTLINE_PROMPT_FILE: str
-    SECTION_PROMPT_FILE: str
-    TITLE_PROMPT_FILE: str
-    CATEGORIES_PROMPT_FILE: str
-    ANCHORS_PROMPT_FILE: str
-
-    # Article generation
 
     TOPIC: str
     GEN_TITLES_COUNT: int
     ARTICLE_SECTIONS_COUNT: int
+    ARTICLE_LINK_COUNT: int
 
     CATEGORIES_COUNT: int
 
-    INVALID_JSON_TRIES: int
-    MAX_SECTION_RETRIES: int
+    REMOVE_FIRST_H3: bool
 
     PUBLISH_STATUS: str
 
-    IMAGE_GENERATION_PROMPT_FILE: str
-    IMAGE_DESCRIPTION_PROMPT_FILE: str
     IMAGE_PATH: str
     GENERATE_IMAGE: bool
 
@@ -56,6 +39,29 @@ class Settings:
     EMBEDDINGS_DB_PATH: str
     EMBEDDINGS_OPENAI_MODEL: str
 
+    PERPLEXITY_API_KEY: str
+
+    SUFFIX_URL: str = ""
+
+    OPENAI_MINUTE_RATE_LIMIT: int = 3500
+    OPENAI_MINUTE_TOKEN_RATE_LIMIT: int = 60000
+
+    PRICE_PER_THOUSAND_INPUT_TOKENS: float = 0.001
+    PRICE_PER_THOUSAND_OUTPUT_TOKENS: float = 0.002
+
+    OUTLINE_PROMPT_FILE: str = "prompts/outline.txt"
+    SECTION_PROMPT_FILE: str = "prompts/sections.txt"
+    TITLE_PROMPT_FILE: str = "prompts/titles.txt"
+    CATEGORIES_PROMPT_FILE: str = "prompts/categories.txt"
+    ANCHORS_PROMPT_FILE: str = "prompts/anchors.txt"
+    ADDITIONAL_DATA_PROMPT_FILE: str = "prompts/additional_data.txt"
+    IMAGE_GENERATION_PROMPT_FILE: str = "prompts/image_generation.txt"
+    IMAGE_DESCRIPTION_PROMPT_FILE: str = "prompts/image_description.txt"
+    DATA_SPLIT_PROMPT_FILE: str = "prompts/data_split.txt"
+
+    INVALID_JSON_TRIES: int = 3
+    MAX_SECTION_RETRIES: int = 3
+
     def model_dump(self):
         return asdict(self)
 
@@ -69,6 +75,9 @@ class Settings:
         for field in fields(cls):
             field_name = field.name
             field_type = field.type
+            if type(field.default) != _MISSING_TYPE:
+                converted_vars[field_name] = field.default
+                continue
             if field_name in env_vars and env_vars[field_name] is not None:
                 if field_type == bool:
                     converted_vars[field_name] = env_vars[field_name].lower() == "true"

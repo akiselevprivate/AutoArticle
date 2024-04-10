@@ -1,7 +1,9 @@
 from settings import prompts
 from settings.settings import settings
 from utils.llm import json_llm_completion
+from utils.perplexity import perplexity_llm
 from settings.logger import logger
+from generation.utils import split_paragraphs
 
 
 def generate_categories(topic: str, ammount: int) -> list[str]:
@@ -41,7 +43,7 @@ def generate_titles(topic: str, category: str, ammount: int) -> list[str]:
 
     try:
         titles_dict, all_usages = json_llm_completion(
-            prompt, 300, "gpt-4-0125-preview", True, test_dict_output
+            prompt, 300, throw_exception=True, other_checks_func=test_dict_output
         )
     except Exception as e:
         logger.error("error generating titles ", e)
@@ -68,3 +70,41 @@ def generate_anchors(title: str, ammount: int):
     anchors = anchors_dict["anchors"][:ammount]
 
     return anchors
+
+
+def generate_addiional_data(title: str):
+    prompt = prompts.ADDITIONAL_DATA.replace(r"{title}", title)
+    completion, usage = perplexity_llm(prompt, 300)
+
+    # open("data.txt", "w+").write(completion)
+
+    return completion
+
+
+def generate_split_data(title: str, data: str, ammount: int):
+
+    # split_data = split_paragraphs(data)
+
+    # if len(split_data) == ammount:
+    #     return split_data
+
+    prompt = (
+        prompts.DATA_SPLIT.replace(r"{title}", title)
+        .replace(r"{data}", data)
+        .replace(r"{ammount}", str(ammount))
+    )
+
+    def test_dict_output(dict_completion):
+        return (
+            "paragraphs" in dict_completion.keys()
+            and len(dict_completion["paragraphs"]) == ammount
+        )
+
+    paragraphs_dict, all_usages = json_llm_completion(
+        prompt,
+        1200,
+        throw_exception=True,
+        other_checks_func=test_dict_output,
+    )
+
+    return paragraphs_dict["paragraphs"]

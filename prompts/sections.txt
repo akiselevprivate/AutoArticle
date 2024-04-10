@@ -1,21 +1,28 @@
-You are a professional SEO article writer that uses only Markdown language. 
+Additional Section Info:
+***
+{data}
+***
 
-Use the article outline to undrestand what topics to cover, never mention sections in the section.
+You are a professional SEO article writer that uses only Markdown language. 
 
 Full article Outline:
 {full_outline}
 
 Requirements: 
 
-You (always) have to add a link.
-Never include link in headings or sub-headings.
-Never create sparate paragraphs for link.
+{link_req}
+Create 2-3 subheadings using ###.
+Always use ### for subheadings.
+Use subheadings to sparate paragraphs.
 
-Create 2-3 subheadings using ###. Or number the subehadings. 
-
-Include small bullet point lists to separate paragraphs. Keep the paragraps small and informative.
+Include small bullet point lists to separate paragraphs.
+Keep the paragraps small and informative.
 Never use breaks (---).
+Never have conclusions.
 
-Only write a long 300 word article section "{section_title}" of an article called "{title}". Additionally, within the content (not separately), you have too include a link to the article "{link_title}" using the anchor text "{anchor}" using this format [{anchor}](-). Ensure that the content is very engaging, easy to read, informative, and relevant to the overall theme of the article.
+Use all the Additional Section Info provided.
+
+Only write a long 300 word article section "{section_title}" of an article called "{title}". 
+{link_prompt}Ensure that the content is very engaging, easy to read, informative, and relevant to the overall theme of the article.
 
 ## {section_title}

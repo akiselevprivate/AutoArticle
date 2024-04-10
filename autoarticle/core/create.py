@@ -1,8 +1,11 @@
 import click
-from db.manage import create_db
-from db.models import db_obj, Article
+from db.models import Article
 from settings.settings import settings
-from generation.full import generate_articles, continue_articles
+from generation.full import (
+    generate_articles,
+    continue_articles,
+    gnerate_from_categories,
+)
 
 from utils.llm import rate_limiter
 from settings.logger import logger
@@ -24,7 +27,6 @@ def output_model_price():
 
 @create.command()
 def new():
-    create_db(db_obj)
 
     articles = generate_articles(
         settings.TOPIC,
@@ -32,6 +34,26 @@ def new():
         settings.GEN_TITLES_COUNT,
         settings.ARTICLE_SECTIONS_COUNT,
         settings.GENERATE_IMAGE,
+        settings.ARTICLE_LINK_COUNT,
+    )
+
+    output_model_price()
+
+
+@create.command()
+@click.argument("categories", type=str)
+def categories(categories):
+
+    categories = categories.split(",")
+    categories = [c.strip() for c in categories]
+
+    gnerate_from_categories(
+        settings.TOPIC,
+        categories,
+        settings.GEN_TITLES_COUNT,
+        settings.ARTICLE_SECTIONS_COUNT,
+        settings.GENERATE_IMAGE,
+        settings.ARTICLE_LINK_COUNT,
     )
 
     output_model_price()
@@ -47,8 +69,10 @@ def existing(count: int):
 
     articles = continue_articles(
         articles,
+        settings.TOPIC,
         settings.ARTICLE_SECTIONS_COUNT,
         settings.GENERATE_IMAGE,
+        settings.ARTICLE_LINK_COUNT,
     )
 
     output_model_price()
