@@ -2,21 +2,21 @@ scheduled, collections
 
 give existing titles and anchors to avoid duplicates
 
-linking sections seclection using embeddings distance
-
-test out small perplexity
+linking sections selection using embeddings distance
 
 best section completion if retried
 
-separate linking and generation
+separate linking and generation ??
+
+multiple image styles
 
 ---
 
-integrate document with information about a niche, to aid in the generation
+integrate document with information about a niche, to aid in the generation ??
 
 set priority to articles which to link to
 
-Tone
+Tone ??
 Professional/Formal
 Informative
 Humorous
@@ -27,6 +27,6 @@ get trending neiches for generating titles
 
 hot topics for title generation
 
-videos / sources
+sources
 
 social medias

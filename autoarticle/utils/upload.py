@@ -8,6 +8,7 @@ from utils.other import (
     remove_first_h3,
     markdown_to_html,
 )
+from utils.youtube import video_embed_html
 from settings.logger import logger
 
 from generation.utils import get_sections, generate_slug
@@ -210,6 +211,10 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
         if image_tag:
             full_html_list.append(image_tag)
         full_html_list.append(section_html)
+
+    youtube_header = markdown_to_html(f"## Usefull video on {article.title}")
+    full_html_list.append(youtube_header)
+    full_html_list.append(video_embed_html(article.youtube_embed_url))
 
     full_html = "\n".join(full_html_list)
 

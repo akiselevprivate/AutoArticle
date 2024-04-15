@@ -17,6 +17,7 @@ from generation.utils import generate_slug, get_sections, generate_random_bool_l
 from db.models import Article, Section
 from settings.logger import logger
 from utils.other import count_words_in_markdown
+from utils.youtube import get_video_url
 
 import time
 import threading
@@ -316,6 +317,8 @@ def continue_articles(
 
     logger.info("Generated sections.")
 
+    db_lock = threading.Lock()
+
     if should_generate_hero_image:
         threads = []
         for article in articles:
@@ -345,18 +348,25 @@ def continue_articles(
                         section.save()
                     else:
                         image_description = section.image_description
-                    print(image_description)
                     image_uuid = generate_hero_image_from_prompt(image_description)
                     section.image_id = image_uuid
                     section.save()
 
-            thread = threading.Thread(target=gen_img, args=(article,))
-            thread.start()
-            threads.append(thread)
+            # thread = threading.Thread(target=gen_img, args=(article,))
+            # thread.start()
+            # threads.append(thread)
+            gen_img(article)
 
-        [t.join() for t in threads]
+        # [t.join() for t in threads]
 
         logger.info(f"Generated images.")
+
+    for article in articles:
+        if not article.youtube_embed_url:
+            article.youtube_embed_url = get_video_url(article.title)
+            article.save()
+
+    logger.info("Got youtube urls")
 
     for article in articles:
         article.is_complete = True

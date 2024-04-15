@@ -25,7 +25,7 @@ def generate_image(image_description: str):
             "negative_prompt": settings.IMAGE_NEGATIVE_PROMPT,
             "prompt_strength": 0.8,
             "num_inference_steps": settings.IMAGE_INFERENCE_STEPS,
-            "disable_safety_checker": False,
+            "disable_safety_checker": True,
         },
     )
     return output[0]

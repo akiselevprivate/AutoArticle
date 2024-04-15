@@ -9,7 +9,7 @@ client = OpenAI(
 
 def perplexity_llm(prompt: str, max_tokens: int):
     response = client.chat.completions.create(
-        model="sonar-medium-online",
+        model="sonar-small-online",
         messages=[
             {
                 "role": "user",

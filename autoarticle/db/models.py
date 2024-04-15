@@ -47,6 +47,8 @@ class Article(BaseModel):
     image_description = TextField(null=True)
     image_id = TextField(null=True)
 
+    youtube_embed_url = TextField(null=True)
+
     is_complete = BooleanField(default=False)
     is_published = BooleanField(default=False)
 
