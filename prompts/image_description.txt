@@ -1,2 +1,2 @@
 In the description only describe the main / defining objects in the image, dense information, dont use a lot of advectives. 
-Write a very short description of an image for an article with title: "{title}", only description:
+Write a very short description of an image for an article with title: "{title}"{additional}, only description:

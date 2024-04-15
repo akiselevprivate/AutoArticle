@@ -1,6 +1,10 @@
 from generation.article import generate_outline, generate_section
 from generation.embeddings import get_linking_articles, add_linking_embeddings
-from generation.image import generate_hero_image
+from generation.image import (
+    generate_hero_image_from_prompt,
+    generate_hero_prompt,
+    generate_section_prompt,
+)
 from generation.other import (
     generate_categories,
     generate_titles,
@@ -32,7 +36,6 @@ def create_articles_from_title(
         if rem_count < rem:
             local_ammount += 1
             rem_count += 1
-        # print(f"generating titles with {local_ammount} titles.")
         titles = generate_titles(topic, category, local_ammount)
         for title in titles:
             slug = generate_slug(title)
@@ -55,11 +58,17 @@ def gnerate_from_categories(
     sections_ammount: int,
     should_generate_hero_image: bool,
     links_per_article: int,
+    images_per_article: int,
 ):
     articles = create_articles_from_title(topic, categories, titles_ammount)
 
     articles = continue_articles(
-        articles, topic, sections_ammount, should_generate_hero_image, links_per_article
+        articles,
+        topic,
+        sections_ammount,
+        should_generate_hero_image,
+        links_per_article,
+        images_per_article,
     )
 
     return articles
@@ -72,6 +81,7 @@ def generate_articles(
     sections_ammount: int,
     should_generate_hero_image: bool,
     links_per_article: int,
+    images_per_article: int,
 ):
     categories = generate_categories(topic, categories_ammount)
 
@@ -84,6 +94,7 @@ def generate_articles(
         sections_ammount,
         should_generate_hero_image,
         links_per_article,
+        images_per_article,
     )
 
     return articles
@@ -95,6 +106,7 @@ def continue_articles(
     sections_ammount: int,
     should_generate_hero_image: bool,
     links_per_article: int,
+    images_per_article: int,
 ):
 
     for article in articles:
@@ -118,12 +130,20 @@ def continue_articles(
             sections_inlude_link = generate_random_bool_list(
                 sections_ammount, links_per_article
             )
-            for idx, (title, include_link) in enumerate(
-                zip(sections, sections_inlude_link)
+            sections_include_image = [0] + generate_random_bool_list(
+                sections_ammount - 1, images_per_article
+            )
+            for idx, (title, include_link, include_image) in enumerate(
+                zip(sections, sections_inlude_link, sections_include_image)
             ):
                 section = Section.create(
-                    article=article, title=title, idx=idx, include_link=include_link
+                    article=article,
+                    title=title,
+                    idx=idx,
+                    include_link=include_link,
+                    include_image=include_image,
                 )
+            article.excerpt = outline_dict["excerpt"]
             article.outline_generated = True
             article.save()
 
@@ -186,6 +206,9 @@ def continue_articles(
                 len(article.additional_anchors) - req_anchors_ammount
             )
 
+            if additional_anchors_left < 0:
+                additional_anchors_left = 0
+
             if genrate_anchors_ammount > 0:
                 existing_anchors = [
                     s.anchor
@@ -194,23 +217,33 @@ def continue_articles(
                     )
                 ]
 
+                # additional_anchors_ammount = (
+                #     0
+                #     if len(article.additional_anchors)
+                #     > int(genrate_anchors_ammount * 0.1)
+                #     else int(genrate_anchors_ammount * 0.1)
+                # )
+
                 anchors = generate_anchors(
-                    article.title, genrate_anchors_ammount, existing_anchors
+                    article.title,
+                    genrate_anchors_ammount,
+                    existing_anchors,
                 )
                 anchor_generation_count += 1
                 anchors_count += genrate_anchors_ammount
 
                 use_anchors = (
                     anchors[:genrate_anchors_ammount]
-                    + article.additional_anchors[:additional_anchors_left]
-                )
-                save_anchors = (
-                    anchors[genrate_anchors_ammount:]
                     + article.additional_anchors[additional_anchors_left:]
                 )
+                save_anchors = anchors[genrate_anchors_ammount:]
 
-                article.additional_anchors = save_anchors
-                article.save()
+            else:
+                use_anchors = article.additional_anchors[additional_anchors_left:]
+                save_anchors = article.additional_anchors[:additional_anchors_left]
+
+            article.additional_anchors = save_anchors
+            article.save()
 
             for section, anchor in zip(sections, use_anchors):
                 section.anchor = anchor
@@ -288,11 +321,34 @@ def continue_articles(
         for article in articles:
 
             def gen_img(article: Article):
-                if not article.image_generated:
-                    image_description = generate_hero_image(article.title, article.id)
-                    article.image_description = image_description
-                    article.image_generated = True
+                sections: list[Section] = Section.select().where(
+                    Section.article == article,
+                    Section.include_image == True,
+                    Section.image_id == None,
+                )
+                if not article.image_id:
+                    if not article.image_description:
+                        image_description = generate_hero_prompt(article.title)
+                        article.image_description = image_description
+                        article.save()
+                    else:
+                        image_description = article.image_description
+                    image_uuid = generate_hero_image_from_prompt(image_description)
+                    article.image_id = image_uuid
                     article.save()
+                for section in sections:
+                    if not section.image_description:
+                        image_description = generate_section_prompt(
+                            article.title, section.title
+                        )
+                        section.image_description = image_description
+                        section.save()
+                    else:
+                        image_description = section.image_description
+                    print(image_description)
+                    image_uuid = generate_hero_image_from_prompt(image_description)
+                    section.image_id = image_uuid
+                    section.save()
 
             thread = threading.Thread(target=gen_img, args=(article,))
             thread.start()

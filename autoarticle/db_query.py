@@ -1,11 +1,8 @@
 from generation.embeddings import get_linking_articles
-from db.models import Section
+from db.models import Section, Article
 
-sections: list[Section] = Section.select().where(
-    Section.article == "6e7dab78-a424-4782-94ef-06672b965e1e"
-)
+articles: list[Article] = Article.select()
 
-
-res = get_linking_articles(sections[0].article.title, [s.title for s in sections])
-
-print(res)
+for a in articles:
+    a.is_complete = False
+    a.save()

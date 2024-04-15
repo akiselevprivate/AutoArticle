@@ -7,6 +7,7 @@ Act as a SEO expert.
 Using the information above split the article in to {sections_ammount} sections.
 
 Return strictly only a JSON object that contains the attribute called "outline" with an array of exactly {sections_ammount} string items, each item is a string (h2) section heading of the article.
+The JSON also contains an attribute "excerpt" with is a string of a focused very small description of the artile you are writing.
 
 Article theme is {topic}. Article category is {category}.
-Generate a JSON outline for an article titled: "{title}", JSON:
+Generate a JSON outline and excerpt for an article titled: "{title}", JSON:

@@ -54,12 +54,8 @@ def generate_titles(topic: str, category: str, ammount: int) -> list[str]:
 
 def generate_anchors(title: str, ammount: int, existing_anchors: list[str]):
 
-    additional_anchors_ammount = int(len(existing_anchors) * 0.2)
-
-    logger.info(f"Generating additional {additional_anchors_ammount} anchors")
-
     prompt = prompts.ANCHOR.replace(r"{title}", title).replace(
-        r"{ammount}", str(ammount + additional_anchors_ammount)
+        r"{ammount}", str(ammount)
     )
 
     def test_dict_output(dict_completion):

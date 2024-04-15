@@ -28,6 +28,8 @@ class Settings:
     IMAGE_PATH: str
     GENERATE_IMAGE: bool
 
+    EXTRA_IMAGES_PER_ARTICLE: int
+
     REPLICATE_API_TOKEN: str
     IMAGE_MODEL: str
     IMAGE_HEIGHT: int

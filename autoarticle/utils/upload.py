@@ -45,46 +45,41 @@ def trim_newlines(input_str):
     return input_str[start_index : end_index + 1]
 
 
-def create_article_markdown(article: Article):
+def create_section_markdown(section: Section):
     markdown_components = []
-    sections: list[Section] = get_sections(article.id)
-    for section in sections:
-        markdown_components.append(f"## {section.title}")
+    markdown_components.append(f"## {section.title}")
 
-        section_markdown = section.markdown
+    section_markdown = section.markdown
 
-        if section.include_link:
-            linking_article_slug = section.link.slug
-            suffix = settings.SUFFIX_URL + "/" if settings.SUFFIX_URL else ""
-            linking_article_link = "/" + suffix + linking_article_slug + "/"
+    if section.include_link:
+        linking_article_slug = section.link.slug
+        suffix = settings.SUFFIX_URL + "/" if settings.SUFFIX_URL else ""
+        linking_article_link = "/" + suffix + linking_article_slug + "/"
 
-            section_markdown = replace_urls_in_markdown(
-                section_markdown, linking_article_link
-            )
+        section_markdown = replace_urls_in_markdown(
+            section_markdown, linking_article_link
+        )
 
-        section_markdown = trim_newlines(section_markdown)
+    section_markdown = trim_newlines(section_markdown)
 
-        section_markdown = remove_title_from_markdown(section_markdown)
+    section_markdown = remove_title_from_markdown(section_markdown)
 
-        section_markdown = remove_first_h2_markdown(section_markdown)
+    section_markdown = remove_first_h2_markdown(section_markdown)
 
-        section_markdown = remove_duplicate_h3(section_markdown, section.title)
+    section_markdown = remove_duplicate_h3(section_markdown, section.title)
 
-        if settings.REMOVE_FIRST_H3 and section.index == 0:
-            section_markdown = remove_first_h3(section_markdown)
+    if settings.REMOVE_FIRST_H3 and section.index == 0:
+        section_markdown = remove_first_h3(section_markdown)
 
-        section_markdown = section_markdown.replace(r"–", "-").replace(r" - ", "    - ")
+    section_markdown = section_markdown.replace(r"–", "-").replace(r" - ", "    - ")
 
-        markdown_components.append(section_markdown)
-
-    full_markdown = "\n".join(markdown_components)
-    return full_markdown
+    markdown_components.append(section_markdown)
+    return "\n".join(markdown_components)
 
 
 def create_categorie_request(session: requests.Session, categorie_data: dict):
     url = settings.SITE_URL + "wp-json/wp/v2/categories"
     responce = session.post(url, json=categorie_data)
-    # print(responce.text)
     json_responce = responce.json()
     categorie_id = None
     if responce.status_code == 201:
@@ -119,31 +114,106 @@ def upload_media(session: requests.Session, file_path: str, alt_text: str):
     if featured_image_id == None:
         logger.error(response.json())
         raise Exception("failed to upload image")
-    return featured_image_id
+
+    image_tag = create_image_tag(response.json())
+
+    return featured_image_id, image_tag
+
+
+def create_image_tag(responce_json: dict):
+    return (
+        r"""
+    <figure class="wp-block-image size-large">
+      <img
+        fetchpriority="high"
+        decoding="async"
+        width="1024"
+        height="546"
+        src="{large}"
+        alt="{alt}"
+        class="wp-image"
+        srcset="
+          {large}        1024w,
+          {medium}        300w,
+          {thumbnail}     150w,
+          {medium_large}  768w,
+          {1536x1536}    1536w,
+          {2048x2048}    2048w
+        "
+        sizes="(max-width: 1024px) 100vw, 1024px"
+      />
+    </figure>
+    """.replace(
+            r"{large}", responce_json["media_details"]["sizes"]["large"]["source_url"]
+        )
+        .replace(
+            r"{medium}", responce_json["media_details"]["sizes"]["medium"]["source_url"]
+        )
+        .replace(
+            r"{thumbnail}",
+            responce_json["media_details"]["sizes"]["thumbnail"]["source_url"],
+        )
+        .replace(
+            r"{medium_large}",
+            responce_json["media_details"]["sizes"]["medium_large"]["source_url"],
+        )
+        .replace(
+            r"{1536x1536}",
+            responce_json["media_details"]["sizes"]["1536x1536"]["source_url"],
+        )
+        .replace(
+            r"{2048x2048}",
+            responce_json["media_details"]["sizes"]["2048x2048"]["source_url"],
+        )
+    ).replace(r"{alt}", responce_json["alt_text"])
 
 
 def upload_article(article: Article, session: requests.Session, categories_dict: dict):
-    content_markdown = create_article_markdown(article)
-    content_html = markdown_to_html(content_markdown)
 
     categorie_ids = [categories_dict[article.category]]
 
     post_data = {
         "title": article.title,
         "slug": article.slug,
-        "content": content_html,
+        "excerpt": article.excerpt,
         "categories": categorie_ids,
         "status": settings.PUBLISH_STATUS,
     }
 
-    if article.image_generated:  # TODO
-        media_file_path = f"{settings.IMAGE_PATH}/{str(article.id)}.webp"
-        featured_image_id = upload_media(
+    if article.image_id:  # TODO
+        media_file_path = f"{settings.IMAGE_PATH}/{article.image_id}.webp"
+        featured_image_id, _ = upload_media(
             session,
             media_file_path,
             article.image_description,
         )
         post_data["featured_media"] = featured_image_id
+
+    sections: list[Section] = get_sections(article.id)
+    section_image_tags = []
+    for section in sections:
+        if section.image_id:
+            media_file_path = f"{settings.IMAGE_PATH}/{section.image_id}.webp"
+            _, image_tag = upload_media(
+                session,
+                media_file_path,
+                section.image_description,
+            )
+            section_image_tags.append(image_tag)
+        else:
+            section_image_tags.append(None)
+
+    full_html_list = []
+    for section, image_tag in zip(sections, section_image_tags):
+        section_markdown = create_section_markdown(section)
+        section_html = markdown_to_html(section_markdown)
+        if image_tag:
+            full_html_list.append(image_tag)
+        full_html_list.append(section_html)
+
+    full_html = "\n".join(full_html_list)
+
+    post_data["content"] = full_html
 
     responce, success = upload_article_request(session, post_data)
 

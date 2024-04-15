@@ -32,6 +32,8 @@ class Article(BaseModel):
     slug = TextField(unique=True)
     category = TextField()
 
+    excerpt = TextField(null=True)
+
     additional_data = TextField(null=True)
     additional_data_split = BooleanField(default=False)
 
@@ -43,14 +45,10 @@ class Article(BaseModel):
     additional_anchors = JSONField(default=[])
 
     image_description = TextField(null=True)
-    image_generated = BooleanField(default=False)
+    image_id = TextField(null=True)
 
     is_complete = BooleanField(default=False)
     is_published = BooleanField(default=False)
-    # article_deleted = BooleanField(default=False)
-
-    # full_article_markdown = TextField(null=True)
-    # html_converted_markdown = TextField(null=True)
 
 
 class Section(BaseModel):
@@ -60,6 +58,10 @@ class Section(BaseModel):
     title = TextField()
     idx = IntegerField()
     include_link = BooleanField()
+    include_image = BooleanField()
+
+    image_description = TextField(null=True)
+    image_id = TextField(null=True)
 
     additional_data = TextField(null=True)
 

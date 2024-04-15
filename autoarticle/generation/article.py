@@ -6,6 +6,8 @@ from generation.utils import anchor_matches
 
 from settings.settings import settings
 
+import json
+
 
 def generate_outline(
     title: str, sections_ammount: int, topic: str, category: str, article_data: str
@@ -20,13 +22,15 @@ def generate_outline(
 
     def test_dict_output(dict_completion: dict):
         return (
-            "outline" in dict_completion.keys()
+            all([v in dict_completion.keys() for v in ["outline", "excerpt"]])
             and len(dict_completion["outline"]) == sections_ammount
         )
 
     outline_dict, all_usages = json_llm_completion(
         prompt, 512, throw_exception=False, other_checks_func=test_dict_output
     )
+
+    # json.dump(outline_dict, open("dump.json", "w+"))
 
     return outline_dict
 
@@ -49,11 +53,11 @@ def generate_section(
     link_title: str = None,
 ) -> str:
 
-    link_req_prompt = """You (always) have to add the provided link.
-Never put link in sub-headings or separate paragraphs.
-Never add link sources."""
+    link_req_prompt = """You (always) have to add the provided link inside other text to add information.
+Never add link separately.
+"""
     base_link_prompt = (
-        r'Additionally, within the content (not separately), you have too add a link to the article "{link_title}" using the anchor text "{anchor}" using this format [{anchor}](1).'
+        r'As part of the text to add information you have too add a link to the article "{link_title}" using this format [{anchor}](1).'
         + "\n"
     )
     if include_link:
@@ -87,13 +91,14 @@ Never add link sources."""
         if not include_link:
             return section_md, generated_anchors
 
-        # if len(generated_anchors) == 1 and generated_anchors[0] == anchor:
-        if len(generated_anchors) >= 1:
+        if len(generated_anchors) == 1 and generated_anchors[0] == anchor:
+            # if len(generated_anchors) >= 1:
             return section_md, generated_anchors
         else:
-            print(anchor)
             logger.info("Regenerating section")
 
     logger.error(section_md)
     logger.error(str(generated_anchors))
-    raise Exception("Retried multiple times.")
+    logger.error("Retried section multiple times.")
+
+    return section_md, generated_anchors

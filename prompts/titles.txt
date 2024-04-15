@@ -1,7 +1,7 @@
-Generate very simple, undestandable titles based on hot topics.
+Generate short single sentence article titles with a keyword, Address an issue.
+
 Keep the titles short, under 70 chars.
 Never include numbers and dates in the title.
+Always single sentence
 
-NEVER include fluff, or other words taht dont add information.
-
-In JSON format with only a "titles" argument with flat array of string items, create {ammount} blog article titles on the topic {topic} of the category {category}:
+In JSON format with only a "titles" argument with flat array of string items, create {ammount} article titles on the topic {topic} of the category {category}:

@@ -4,6 +4,6 @@ Data:
 ***
 
 Writing sections for an article: "{title}"
-You have to split the data in to {ammount} detailed paragraphs with information for an article.
+You have to split the data in to exactly {ammount} detailed paragraphs with information for an article.
 Include all the detailed info.
-Output a JSON with "paragraphs" attribute with a list of {ammount} string items of short text paragraphs from the data above, JSON:
+Output a JSON with "paragraphs" attribute with a list of exactly {ammount} string items of short text paragraphs from the data above, JSON:

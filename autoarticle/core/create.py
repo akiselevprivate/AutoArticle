@@ -9,8 +9,6 @@ from generation.full import (
 
 from utils.llm import rate_limiter
 from settings.logger import logger
-import json
-import asyncio
 
 
 @click.group()
@@ -35,6 +33,7 @@ def new():
         settings.ARTICLE_SECTIONS_COUNT,
         settings.GENERATE_IMAGE,
         settings.ARTICLE_LINK_COUNT,
+        settings.EXTRA_IMAGES_PER_ARTICLE,
     )
 
     output_model_price()
@@ -54,6 +53,7 @@ def categories(categories):
         settings.ARTICLE_SECTIONS_COUNT,
         settings.GENERATE_IMAGE,
         settings.ARTICLE_LINK_COUNT,
+        settings.EXTRA_IMAGES_PER_ARTICLE,
     )
 
     output_model_price()
@@ -73,6 +73,7 @@ def existing(count: int):
         settings.ARTICLE_SECTIONS_COUNT,
         settings.GENERATE_IMAGE,
         settings.ARTICLE_LINK_COUNT,
+        settings.EXTRA_IMAGES_PER_ARTICLE,
     )
 
     output_model_price()
