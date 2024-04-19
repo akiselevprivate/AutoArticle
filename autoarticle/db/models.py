@@ -24,13 +24,22 @@ class JSONField(TextField):
 uuid_fn = lambda: str(uuid_pkg.uuid4())
 
 
+class Collection(BaseModel):
+    is_complete = BooleanField(default=False)
+    is_published = BooleanField(default=False)
+
+
 class Article(BaseModel):
     id = TextField(primary_key=True, default=uuid_fn)
     # article_type = TextField()
 
+    collection = ForeignKeyField(Collection)
+
+    topic = TextField()
+    category = TextField()
+
     title = TextField(unique=True)
     slug = TextField(unique=True)
-    category = TextField()
 
     excerpt = TextField(null=True)
 
@@ -54,6 +63,7 @@ class Article(BaseModel):
 
 
 class Section(BaseModel):
+    id = TextField(primary_key=True, default=uuid_fn)
 
     article = ForeignKeyField(Article)
 

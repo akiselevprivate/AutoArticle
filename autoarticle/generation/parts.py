@@ -23,93 +23,91 @@ import time
 import threading
 
 
-def create_articles_from_title(
-    topic: str,
-    categories: list[str],
-    titles_ammount: int,
-):
+# def create_article_titles(
+#     topic: str,
+#     categories: list[str],
+#     titles_ammount: int,
+# ):
 
-    articles: list[Article] = []
-    mult, rem = divmod(titles_ammount, len(categories))
-    rem_count = 0
-    for category in categories:
-        local_ammount = mult
-        if rem_count < rem:
-            local_ammount += 1
-            rem_count += 1
-        titles = generate_titles(topic, category, local_ammount)
-        for title in titles:
-            slug = generate_slug(title)
-            try:
-                article = Article.create(title=title, slug=slug, category=category)
-                articles.append(article)
-            except Exception as e:
-                logger.error(e)
-                logger.error("Error creating article")
+#     articles: list[Article] = []
+#     mult, rem = divmod(titles_ammount, len(categories))
+#     rem_count = 0
+#     for category in categories:
+#         local_ammount = mult
+#         if rem_count < rem:
+#             local_ammount += 1
+#             rem_count += 1
+#         titles = generate_titles(topic, category, local_ammount)
+#         for title in titles:
+#             slug = generate_slug(title)
+#             try:
+#                 article = Article.create(
+#                     title=title, slug=slug, category=category, topic=topic
+#                 )
+#                 articles.append(article)
+#             except Exception as e:
+#                 logger.error(e)
+#                 logger.error("Error creating article")
 
-    logger.info(f"Generated {len(articles)} titles.")
+#     logger.info(f"Generated {len(articles)} titles.")
 
-    return articles
-
-
-def gnerate_from_categories(
-    topic: str,
-    categories: list[str],
-    titles_ammount: int,
-    sections_ammount: int,
-    should_generate_hero_image: bool,
-    links_per_article: int,
-    images_per_article: int,
-):
-    articles = create_articles_from_title(topic, categories, titles_ammount)
-
-    articles = continue_articles(
-        articles,
-        topic,
-        sections_ammount,
-        should_generate_hero_image,
-        links_per_article,
-        images_per_article,
-    )
-
-    return articles
+#     return articles
 
 
-def generate_articles(
-    topic: str,
-    categories_ammount: int,
-    titles_ammount: int,
-    sections_ammount: int,
-    should_generate_hero_image: bool,
-    links_per_article: int,
-    images_per_article: int,
-):
-    categories = generate_categories(topic, categories_ammount)
+# def generate_from_categories(
+#     topic: str,
+#     categories: list[str],
+#     titles_ammount: int,
+#     sections_ammount: int,
+#     should_generate_hero_image: bool,
+#     links_per_article: int,
+#     images_per_article: int,
+# ):
+#     articles = create_articles_from_title(topic, categories, titles_ammount)
 
-    logger.info(f"Generated {categories_ammount} categories.")
+#     articles = continue_articles(
+#         articles,
+#         sections_ammount,
+#         should_generate_hero_image,
+#         links_per_article,
+#         images_per_article,
+#     )
 
-    articles = gnerate_from_categories(
-        topic,
-        categories,
-        titles_ammount,
-        sections_ammount,
-        should_generate_hero_image,
-        links_per_article,
-        images_per_article,
-    )
-
-    return articles
+#     return articles
 
 
-def continue_articles(
+# def generate_articles(
+#     topic: str,
+#     categories_ammount: int,
+#     titles_ammount: int,
+#     sections_ammount: int,
+#     should_generate_hero_image: bool,
+#     links_per_article: int,
+#     images_per_article: int,
+# ):
+#     categories = generate_categories(topic, categories_ammount)
+
+#     logger.info(f"Generated {categories_ammount} categories.")
+
+#     articles = generate_from_categories(
+#         topic,
+#         categories,
+#         titles_ammount,
+#         sections_ammount,
+#         should_generate_hero_image,
+#         links_per_article,
+#         images_per_article,
+#     )
+
+#     return articles
+
+
+def create_articles_base(
     articles: list[Article],
-    topic: str,
     sections_ammount: int,
-    should_generate_hero_image: bool,
-    links_per_article: int,
     images_per_article: int,
+    links_per_article: int,
 ):
-
     for article in articles:
         if not article.additional_data:
             additional_data = generate_addiional_data(article.title)
@@ -123,7 +121,7 @@ def continue_articles(
             outline_dict = generate_outline(
                 article.title,
                 sections_ammount,
-                topic,
+                article.topic,
                 article.category,
                 article.additional_data,
             )
@@ -150,6 +148,8 @@ def continue_articles(
 
     logger.info(f"Generated outlines")
 
+
+def generate_embeddings(articles: list[Article]):
     titles = []
     section_titles = []
     uuids = []
@@ -169,6 +169,8 @@ def continue_articles(
 
     logger.info(f"Generated embeddings.")
 
+
+def create_linkings(articles: list[Article]):
     for article in articles:
         if not article.interlinking_uuids_generated:
             sections = (
@@ -186,6 +188,8 @@ def continue_articles(
 
     logger.info(f"Created linkings.")
 
+
+def create_anchors(articles: list[Article]):
     anchor_generation_count = 0
     anchors_count = 0
     all_articles: list[Article] = Article.select()
@@ -194,6 +198,7 @@ def continue_articles(
             Section.anchor == None,
             Section.link == article,
             Section.include_link == True,
+            Section.article << articles,
         )
         if sections.count() > 0:
 
@@ -254,12 +259,20 @@ def continue_articles(
         f"Generated anchors: Invoked generation {anchor_generation_count} times, generated {anchors_count} anchors."
     )
 
+
+def generate_articles(
+    articles: list[Article],
+    should_generate_hero_image: bool,
+):
+
+    create_anchors(articles)
+
     for article in articles:
         if not article.additional_data_split:
             sections: list[Section] = get_sections(article.id)
 
             data_paragraphs = generate_split_data(
-                article.title, article.additional_data, sections_ammount
+                article.title, article.additional_data, sections.count()
             )
 
             for section, data in zip(sections, data_paragraphs):
@@ -316,8 +329,6 @@ def continue_articles(
             )
 
     logger.info("Generated sections.")
-
-    db_lock = threading.Lock()
 
     if should_generate_hero_image:
         threads = []

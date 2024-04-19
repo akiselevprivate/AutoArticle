@@ -6,3 +6,4 @@ db.sqlite
 old_dbs
 images
 vectors
+config.json
