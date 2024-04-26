@@ -13,9 +13,12 @@ from generation.other import (
     generate_split_data,
 )
 from generation.utils import generate_slug, get_sections, generate_random_bool_list
+from generation.product import generate_product_outline
+from generation.faq import generate_faq
 
-from db.models import Article, Section
+from db.models import Article, Section, Product
 from settings.logger import logger
+from settings import content
 from utils.other import count_words_in_markdown
 from utils.youtube import get_video_url
 
@@ -104,12 +107,12 @@ import threading
 
 def create_articles_base(
     articles: list[Article],
-    sections_ammount: int,
+    default_sections_ammount: int,
     images_per_article: int,
     links_per_article: int,
 ):
     for article in articles:
-        if not article.additional_data:
+        if article.data_req and not article.additional_data:
             additional_data = generate_addiional_data(article.title)
             article.additional_data = additional_data
             article.save()
@@ -117,23 +120,75 @@ def create_articles_base(
     logger.info("Generated additional data")
 
     for article in articles:
+        products: list[Product] = Product.select().where(
+            Product.article == article, Product.is_generated == False
+        )
+        for product in products:
+            product_outline = generate_product_outline(
+                product.description,
+                product.reviews,
+                product.full_name,
+                product.price,
+            )
+            product.pros = product_outline["pros"]
+            product.cons = product_outline["cons"]
+            product.short_name = product_outline["short_name"]
+            product.summary = product_outline["summary"]
+            product.is_generated = True
+            product.save()
+
+    logger.info(f"Generated product outlines.")
+
+    for article in articles:
         if not article.outline_generated:
+
+            if article.content_type == content.PRODUCT_COMPARISON:
+                products: list[Product] = Product.select().where(
+                    Product.article == article
+                )
+                sections_ammount = products.count() + 2
+            else:
+                products = [None] * default_sections_ammount
+                sections_ammount = default_sections_ammount
+
+            if article.content_type == content.PRODUCT_REVIEW:
+                additional_data = products[0].summary
+            else:
+                additional_data = article.additional_data
+
             outline_dict = generate_outline(
                 article.title,
-                sections_ammount,
+                (
+                    2
+                    if article.content_type == content.PRODUCT_COMPARISON
+                    else sections_ammount
+                ),
                 article.topic,
                 article.category,
-                article.additional_data,
+                additional_data,
+                article.article_type,
+                article.tone,
+                article.content_type,
             )
             sections = outline_dict["outline"]
+
+            if article.content_type == content.PRODUCT_COMPARISON:
+                sections = (
+                    [sections[0]] + [p.short_name for p in products] + [sections[-1]]
+                )
+                products = [None] + list(products) + [None]
+
             sections_inlude_link = generate_random_bool_list(
                 sections_ammount, links_per_article
             )
-            sections_include_image = [0] + generate_random_bool_list(
-                sections_ammount - 1, images_per_article
-            )
-            for idx, (title, include_link, include_image) in enumerate(
-                zip(sections, sections_inlude_link, sections_include_image)
+            if article.content_type == content.PRODUCT_COMPARISON:
+                sections_include_image = [False] * sections_ammount
+            else:
+                sections_include_image = [False] + generate_random_bool_list(
+                    sections_ammount - 1, images_per_article
+                )
+            for idx, (title, include_link, include_image, product) in enumerate(
+                zip(sections, sections_inlude_link, sections_include_image, products)
             ):
                 section = Section.create(
                     article=article,
@@ -141,8 +196,10 @@ def create_articles_base(
                     idx=idx,
                     include_link=include_link,
                     include_image=include_image,
+                    product=product,
                 )
             article.excerpt = outline_dict["excerpt"]
+            article.video_query = outline_dict["video_query"]
             article.outline_generated = True
             article.save()
 
@@ -262,17 +319,19 @@ def create_anchors(articles: list[Article]):
 
 def generate_articles(
     articles: list[Article],
+    faq_amount: int,
     should_generate_hero_image: bool,
 ):
 
     create_anchors(articles)
 
     for article in articles:
-        if not article.additional_data_split:
+        if article.data_req and not article.additional_data_split:
             sections: list[Section] = get_sections(article.id)
 
+            section_titles = [s.title for s in sections]
             data_paragraphs = generate_split_data(
-                article.title, article.additional_data, sections.count()
+                article.title, article.additional_data, sections.count(), section_titles
             )
 
             for section, data in zip(sections, data_paragraphs):
@@ -298,11 +357,21 @@ def generate_articles(
             for section in sections:
 
                 def gen(section: Section):
+
+                    if section.additional_data:
+                        additional_data = section.additional_data
+                    elif section.product:
+                        additional_data = section.product.summary
+                    else:
+                        additional_data = None
+
                     section_md, generated_anchors = generate_section(
                         article.title,
                         section.title,
                         all_section_titles,
-                        section.additional_data,
+                        additional_data,
+                        article.article_type,
+                        article.tone,
                         section.include_link,
                         section.anchor if section.include_link else None,
                         section.link.title if section.include_link else None,
@@ -330,6 +399,16 @@ def generate_articles(
 
     logger.info("Generated sections.")
 
+    for article in articles:
+        if not article.faq:
+            faq_2d = generate_faq(
+                article.additional_data, article.topic, article.title, faq_amount
+            )
+            article.faq = faq_2d
+            article.save()
+
+    logger.info(f"Generated FAQs")
+
     if should_generate_hero_image:
         threads = []
         for article in articles:
@@ -340,7 +419,7 @@ def generate_articles(
                     Section.include_image == True,
                     Section.image_id == None,
                 )
-                if not article.image_id:
+                if article.image_req and not article.image_id:
                     if not article.image_description:
                         image_description = generate_hero_prompt(article.title)
                         article.image_description = image_description
@@ -350,18 +429,19 @@ def generate_articles(
                     image_uuid = generate_hero_image_from_prompt(image_description)
                     article.image_id = image_uuid
                     article.save()
-                for section in sections:
-                    if not section.image_description:
-                        image_description = generate_section_prompt(
-                            article.title, section.title
-                        )
-                        section.image_description = image_description
+                if article.image_req:
+                    for section in sections:
+                        if not section.image_description:
+                            image_description = generate_section_prompt(
+                                article.title, section.title
+                            )
+                            section.image_description = image_description
+                            section.save()
+                        else:
+                            image_description = section.image_description
+                        image_uuid = generate_hero_image_from_prompt(image_description)
+                        section.image_id = image_uuid
                         section.save()
-                    else:
-                        image_description = section.image_description
-                    image_uuid = generate_hero_image_from_prompt(image_description)
-                    section.image_id = image_uuid
-                    section.save()
 
             # thread = threading.Thread(target=gen_img, args=(article,))
             # thread.start()
@@ -374,7 +454,7 @@ def generate_articles(
 
     for article in articles:
         if not article.youtube_embed_url:
-            article.youtube_embed_url = get_video_url(article.title)
+            article.youtube_embed_url = get_video_url(article.video_query)
             article.save()
 
     logger.info("Got youtube urls")

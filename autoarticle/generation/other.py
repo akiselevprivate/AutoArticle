@@ -89,17 +89,20 @@ def generate_addiional_data(title: str):
     return completion
 
 
-def generate_split_data(title: str, data: str, ammount: int):
+def generate_split_data(title: str, data: str, ammount: int, section_titles: list):
 
     # split_data = split_paragraphs(data)
 
     # if len(split_data) == ammount:
     #     return split_data
 
+    outline_text = "\n".join(section_titles)
+
     prompt = (
         prompts.DATA_SPLIT.replace(r"{title}", title)
         .replace(r"{data}", data)
         .replace(r"{ammount}", str(ammount))
+        .replace(r"{sections}", outline_text)
     )
 
     def test_dict_output(dict_completion):

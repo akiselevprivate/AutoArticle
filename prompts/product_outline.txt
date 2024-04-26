@@ -1,0 +1,21 @@
+Product description:
+***
+{description}
+***
+
+Top Product reviews: 
+***
+{reviews}
+***
+
+Full Product Name: {name}
+
+Porduct price: {price}
+
+Using the data above create a JSON with attribute "pros" with strings of short messages of the positives of the product.
+Also an attribute "cons" with strings of negative messages of the positives of the product.
+Add an attribute "short_name" string of the short name for this product.
+Add an atribute "summary" a string paragraph with a summary of the product with key points and details.
+Add an atribute "best_feature" a short string of best feature for the {category} category.
+
+For the product above output the JSON:

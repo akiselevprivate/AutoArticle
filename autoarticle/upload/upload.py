@@ -19,10 +19,24 @@ import re
 import requests
 import json
 
+# from itertools import zip_longest
+
 
 def create_section_markdown(section: Section):
     markdown_components = []
     markdown_components.append(f"## {section.title}")
+
+    if section.product:
+        markdown_components.append("### Product table (demo only)")
+        markdown_components.append(f"Price: ${section.product.price}")
+        markdown_components.append("#### Pros")
+        for item in section.product.pros:
+            markdown_components.append(f"- {item}")
+        markdown_components.append("#### Cons")
+        for item in section.product.cons:
+            markdown_components.append(f"- {item}")
+        markdown_components.append(f"[{section.product.short_name} on Amazon    ]()")
+        markdown_components.append("---")
 
     section_markdown = section.markdown
 
@@ -47,10 +61,9 @@ def create_section_markdown(section: Section):
         section_markdown = remove_first_h3(section_markdown)
 
     section_markdown = (
-        section_markdown.replace(r"–", "-")
-        .replace(r" - ", "    - ")
-        .replace("## ", "### ")
-        .replace("# ", "### ")
+        section_markdown.replace(r"–", "-").replace(r" - ", "    - ")
+        # .replace("## ", "### ")
+        # .replace("# ", "### ")
     )
 
     markdown_components.append(section_markdown)
@@ -99,6 +112,12 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
         if image_tag:
             full_html_list.append(image_tag)
         full_html_list.append(section_html)
+
+    if article.faq:
+        full_html_list.append(markdown_to_html("### FAQ"))
+        for question, answer in article.faq:
+            full_html_list.append(markdown_to_html(f"#### {question.capitalize()}"))
+            full_html_list.append(markdown_to_html(answer.capitalize()))
 
     if article.youtube_embed_url:
         video_id = extract_video_id(article.youtube_embed_url)

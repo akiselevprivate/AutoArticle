@@ -3,7 +3,7 @@ import re
 
 
 def get_video_url(title: str):
-    videosSearch = CustomSearch(title, VideoSortOrder.viewCount, limit=1)
+    videosSearch = CustomSearch(title, VideoSortOrder.relevance, limit=1)
     result = videosSearch.result()["result"]
     if len(result) == 0:
         return None

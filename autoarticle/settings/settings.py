@@ -43,6 +43,8 @@ class Settings:
 
     PERPLEXITY_API_KEY: str
 
+    FAQ_AMOUNT: str
+
     SUFFIX_URL: str = ""
 
     OPENAI_MINUTE_RATE_LIMIT: int = 3500
@@ -60,6 +62,8 @@ class Settings:
     IMAGE_GENERATION_PROMPT_FILE: str = "prompts/image_generation.txt"
     IMAGE_DESCRIPTION_PROMPT_FILE: str = "prompts/image_description.txt"
     DATA_SPLIT_PROMPT_FILE: str = "prompts/data_split.txt"
+    FAQ_PROMPT_FILE: str = "prompts/faq.txt"
+    PRODUCT_OUTLINE_PROMPT_FILE: str = "prompts/product_outline.txt"
 
     INVALID_JSON_TRIES: int = 3
     MAX_SECTION_RETRIES: int = 3

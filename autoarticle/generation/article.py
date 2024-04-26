@@ -5,24 +5,54 @@ from utils.llm import json_llm_completion, llm_completion
 from generation.utils import anchor_matches
 
 from settings.settings import settings
+from settings import content
 
 import json
 
 
 def generate_outline(
-    title: str, sections_ammount: int, topic: str, category: str, article_data: str
+    title: str,
+    sections_ammount: int,
+    topic: str,
+    category: str,
+    article_data: str,
+    article_type: str,
+    tone: str,
+    content_type: str,
 ) -> dict:
+
+    if article_data:
+        base_prompt = prompts.OUTLINE.replace(r"{data_split}", "").replace(
+            r"{data}", article_data
+        )
+    else:
+        base_prompt = prompts.OUTLINE.split(r"{data_split}")[1]
+
+    if content_type == content.PRODUCT_COMPARISON:
+        outline_text = "first and the last sections of the article, make them questions not related to specific products."
+    else:
+        outline_text = "article"
+
+    # outline_text = "article"  # TODO
+
     prompt = (
-        prompts.OUTLINE.replace(r"{title}", title)
+        base_prompt.replace(r"{title}", title)
+        .replace(r"{outline_text}", outline_text)
         .replace(r"{sections_ammount}", str(sections_ammount))
-        .replace(r"{data}", article_data)
         .replace(r"{topic}", topic)
         .replace(r"{category}", category)
+        .replace(r"{type}", article_type)
+        .replace(r"{tone}", tone)
     )
 
     def test_dict_output(dict_completion: dict):
         return (
-            all([v in dict_completion.keys() for v in ["outline", "excerpt"]])
+            all(
+                [
+                    v in dict_completion.keys()
+                    for v in ["outline", "excerpt", "video_query"]
+                ]
+            )
             and len(dict_completion["outline"]) == sections_ammount
         )
 
@@ -48,10 +78,20 @@ def generate_section(
     section: str,
     section_titles: list[str],
     article_data: str,
+    article_type: str,
+    tone: str,
     include_link: bool,
     anchor: str = None,
     link_title: str = None,
 ) -> str:
+
+    if article_data:
+        base_prompt = prompts.SECTION.replace(r"{data_split}", "").replace(
+            r"{data}", article_data
+        )
+
+    else:
+        base_prompt = prompts.SECTION.split(r"{data_split}")[1]
 
     link_req_prompt = """You (always) have to add the provided link inside other text to add information.
 Never add link separately.
@@ -70,12 +110,13 @@ Never add link separately.
 
     full_outline_text = create_text_section_outline(section_titles)
     prompt = (
-        prompts.SECTION.replace(r"{title}", title)
+        base_prompt.replace(r"{title}", title)
         .replace(r"{link_req}", link_req_prompt)
         .replace(r"{link_prompt}", link_prompt)
         .replace(r"{section_title}", section)
+        .replace(r"{type}", article_type)
         .replace(r"{full_outline}", full_outline_text)
-        .replace(r"{data}", article_data)
+        .replace(r"{tone}", tone)
     )
 
     # open("prompt.txt", "w+").write(prompt)

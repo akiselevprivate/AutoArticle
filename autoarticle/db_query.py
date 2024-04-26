@@ -1,9 +1,10 @@
-from db.models import Article
+from db.models import Article, Collection
 
-articles = Article.select().where(
-    Article.is_complete,
-    Article.is_published,
-)
-print(len(list(articles)))
-categories_db = articles.select(Article.category).distinct()
-print(list(categories_db))
+# collection = Collection.create()
+# article = Article.create(
+#     collection=collection,
+#     topic="Gaming PC Review",
+#     category="Gaming PCs",
+#     title="Review of Mini Gaming PC",
+#     additional_data=
+# )

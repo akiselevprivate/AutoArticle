@@ -1,0 +1,50 @@
+<!-- wp:afpb/list-item {"uniqueId":"{{product_id}}","title":"{{title}}","url":"{{img_src}}","id":{{img_id}},"alt":"{{img_alt}}","propsList":"\u003cli\u003eRequires updates for optimal performance\u0022\u003c/li\u003e"} -->
+<style>
+  .afpb__btn_{{product_id}}:hover {
+    color: #ffffff !important;
+    background-color: #000000 !important;
+    border-color: #d59215 !important;
+  }
+  #afpb__props_{{product_id}} li:before {
+    color: #027000 !important;
+  }
+</style>
+<div class="wp-block-afpb-list-item" style="background-color: #ffffff">
+  <div class="product_photo">
+    <img src="{{img_src}}" alt="{{img_alt}}" class="wp-image-32" />
+  </div>
+  <div class="product_content">
+    <h2 class="title_tag" style="color: #333333">{{title}}</h2>
+    <div
+      class="afpb__props_list"
+      id="afpb__props_{{product_id}}"
+      style="color: #333333"
+    >
+      <ul>
+        <li>{{feature}}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="product__action_area">
+    <div class="product_rating">
+      <span class="rating_value">{{rating}}</span>
+      <div class="review-rating" data-rate-value="{{rating}}"></div>
+    </div>
+    <div class="product__btn">
+      <a
+        href="#"
+        target="_self"
+        rel="noopener"
+        class="afpb__btn afpb__btn_{{product_id}}"
+        style="
+          color: #ffffff;
+          background-color: #d59215;
+          border: 0px solid #d59215;
+          border-radius: 5px;
+        "
+        >{{buy_text}}</a
+      >
+    </div>
+  </div>
+</div>
+<!-- /wp:afpb/list-item -->

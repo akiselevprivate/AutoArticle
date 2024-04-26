@@ -1,6 +1,6 @@
 import click
 import jsonschema.exceptions
-from db.models import Article, Collection
+from db.models import Article, Collection, Product
 from settings.settings import settings
 from generation.parts import (
     create_anchors,
@@ -13,7 +13,6 @@ from generation.utils import generate_slug
 
 from utils.llm import rate_limiter
 from settings.logger import logger
-from settings.schemas import collection_schema
 
 import json
 import jsonschema
@@ -92,23 +91,44 @@ def output_model_price():
 def collections(config):
     collections_config = json.load(config)
 
-    # print(collections_config)
-    # try:
-    #     jsonschema.validate(collection_schema, collection_schema)
-    # except jsonschema.exceptions.ValidationError as e:
-    #     print("Invalid collections config schema:", e)
-    #     return
-
     gen_data = {}
 
-    import uuid as uuid_pkg
-
     collection_ids = []
+    articles: list[Article] = []
 
     for collection in collections_config["collections"]:
         collection_id = Collection.create().id
         collection_ids.append(collection_id)
         for part in collection:
+
+            if "articles" in part.keys():
+                for art in part["articles"]:
+                    try:
+                        article = Article.create(
+                            collection=collection_id,
+                            topic=part["topic"],
+                            category=part["categories"][0],
+                            article_type=part["article_type"],
+                            tone=part["tone"],
+                            title=art["title"],
+                            slug=generate_slug(art["title"]),
+                            additional_data=art["data"],
+                            data_req=part["data_req"],
+                            content_type=part["content_type"],
+                            image_req=part["image_req"],
+                        )
+
+                        if "products" in art.keys():
+                            for p in art["products"]:
+                                product = Product.create(article=article, **p)
+
+                        articles.append(article)
+                    except Exception as e:
+                        logger.error(f"Error creating article, probably duplicate: {e}")
+
+            if part["amount"] == 0:
+                continue
+
             if type(part["categories"]) == int:
                 categories = generate_categories(part["topic"], part["categories"])
             else:
@@ -123,7 +143,15 @@ def collections(config):
                 ammount_per_category
             ] * (len(categories) - 1)
             for cat, amm in zip(categories, ammount_list):
-                cat_data = [collection_id, amm]
+                cat_data = [
+                    collection_id,
+                    amm,
+                    part["article_type"],
+                    part["tone"],
+                    part["data_req"],
+                    part["image_req"],
+                    part["content_type"],
+                ]
                 if cat not in gen_data[part["topic"]].keys():
                     gen_data[part["topic"]][cat] = [cat_data]
                 else:
@@ -140,8 +168,6 @@ def collections(config):
 
         return result
 
-    articles: list[Article] = []
-
     for topic, categories in gen_data.items():
         for cat, items in categories.items():
             amount = sum([i[1] for i in items])
@@ -150,16 +176,26 @@ def collections(config):
             col_ids = [i[0] for i in items]
             split_amounts = [i[1] for i in items]
             split_data = split_list(titles, split_amounts)
+            other_data = [i[2:] for i in items]
 
-            for titles, col_id in zip(split_data, col_ids):
+            for (
+                titles,
+                col_id,
+                (article_type, tone, data_req, image_req, content_type),
+            ) in zip(split_data, col_ids, other_data):
                 for title in titles:
                     try:
                         article = Article.create(
                             collection=col_id,
                             topic=topic,
                             category=cat,
+                            article_type=article_type,
+                            tone=tone,
                             title=title,
                             slug=generate_slug(title),
+                            data_req=data_req,
+                            image_req=image_req,
+                            content_type=content_type,
                         )
                         articles.append(article)
                     except Exception as e:

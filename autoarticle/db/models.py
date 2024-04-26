@@ -38,6 +38,12 @@ class Article(BaseModel):
     topic = TextField()
     category = TextField()
 
+    article_type = TextField()
+    content_type = TextField()
+    tone = TextField()
+    data_req = BooleanField()
+    image_req = BooleanField()
+
     title = TextField(unique=True)
     slug = TextField(unique=True)
 
@@ -53,13 +59,35 @@ class Article(BaseModel):
 
     additional_anchors = JSONField(default=[])
 
+    faq = JSONField(null=True)
+
     image_description = TextField(null=True)
     image_id = TextField(null=True)
 
+    video_query = TextField(null=True)
     youtube_embed_url = TextField(null=True)
 
     is_complete = BooleanField(default=False)
     is_published = BooleanField(default=False)
+
+
+class Product(BaseModel):
+
+    article = ForeignKeyField(Article)
+
+    full_name = TextField()
+    description = TextField()
+    reviews = JSONField()
+    price = FloatField()
+    # image_urls = JSONField(null=True)
+    # url = TextField()
+
+    is_generated = BooleanField(default=False)
+
+    pros = JSONField(null=True)
+    cons = JSONField(null=True)
+    short_name = TextField(null=True)
+    summary = TextField(null=True)
 
 
 class Section(BaseModel):
@@ -74,6 +102,8 @@ class Section(BaseModel):
 
     image_description = TextField(null=True)
     image_id = TextField(null=True)
+
+    product = ForeignKeyField(Product, null=True)
 
     additional_data = TextField(null=True)
 

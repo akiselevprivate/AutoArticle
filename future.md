@@ -10,7 +10,22 @@ database migration
 
 multiple connections to db
 
-search query for images and videos
+---
+
+generate micro topic for each article eg. BMW IX review for data
+
+search query for images, videos and data
+
+product reviews / comparisons
+get data such as description, title, reviews, ?price
+
+FAQs
+
+keywords and searches for titles and FAQs
+
+product characteristics, pros and cons list
+
+related articles in the middle
 
 ---
 
@@ -32,31 +47,3 @@ hot topics for title generation
 sources
 
 social medias
-
----
-
-collections:
-
-topic
-categories
-ammount
-
-generate collections:
-generate all titles and anchors
-itterative links
-
-generate collection
-
-change generation to get topics from the article instance
-
-collection create all: print confiramtion
-
-commands:
-
-create collections (file) ammount
-
-generate collection x / all
-
-upload collection x / all
-
-info anchors x / all

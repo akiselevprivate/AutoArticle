@@ -1,0 +1,9 @@
+Article Data:
+***
+{data}
+***
+
+Use the data above for FAQ questions and answers.{data_split}
+
+Output a JSON with an attribute "faq" which has exacty {ammount} 2d array of strings, where each array is a frequently asked question and an informative answer. 
+Create a JSOM on the topic {topic} for an article: "{title}":
