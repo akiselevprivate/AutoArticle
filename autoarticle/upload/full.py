@@ -7,7 +7,7 @@ from upload.upload import upload_article
 from generation.utils import generate_slug
 
 
-def upload_articles(articles: list[Article]):
+def upload_articles(articles: list[Article], date: str = None):
     logger.info(f"Uploading {len(articles)} articles to {settings.SITE_URL}")
 
     session = create_session()
@@ -34,7 +34,7 @@ def upload_articles(articles: list[Article]):
     uploaded_articles = []
     for idx, article in enumerate(articles):
         # try:
-        uploaded_article, success = upload_article(article, session, categorie_dict)
+        uploaded_article, success = upload_article(article, date, session, categorie_dict)
 
         uploaded_articles.append(uploaded_article)
         logger.info(

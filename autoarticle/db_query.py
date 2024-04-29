@@ -1,10 +1,7 @@
 from db.models import Article, Collection
 
-# collection = Collection.create()
-# article = Article.create(
-#     collection=collection,
-#     topic="Gaming PC Review",
-#     category="Gaming PCs",
-#     title="Review of Mini Gaming PC",
-#     additional_data=
-# )
+articles = Article.select()
+
+titles = "\n".join([a.title for a in articles])
+
+open("titles.txt", "w+").write(titles)

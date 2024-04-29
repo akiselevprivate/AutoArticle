@@ -1,33 +1,34 @@
-<!-- wp:afpb/product-showcase {"uniqueId":"{{product_id}}","showBadge":false,"title":"{{title}}","description":"{{description}}","url":"{{img_src}}","id":{{img_id}},"alt":"{{img_alt}}","propsList":"\u003cli\u003epros\u003c/li\u003e","consList":"\u003cli\u003econs\u003c/li\u003e"} -->
- <div class="wp-block-afpb-product-showcase">
-    <div class="afpb__product_info " style="border:1px solid #d7b837;border-radius:5px;background-color:#ffffff">
-       <div class="product_photo"><img src="http://localhost/wp-content/uploads/2024/04/avatar-9.png" alt="" class="wp-image-38"/><a href="#" target="_self" rel="noopener" class="afpb__btn afpb__btn_{{product_id}}" style="color:#ffffff;background-color:#d59215;border:0px solid #d59215;border-radius:0px">Buy Now</a></div>
-       <div class="product_content">
-          <h2 style="color:#333333" class="title_tag">{{title}}</h2>
-          <div class="product_rating">
-             <span class="rating_value">{{rating}}</span>
-             <div class="review-rating" data-rate-value="{{rating}}"></div>
-          </div>
-          <div class="product_description" style="color:#333333">
-             <p>
-             <p>{{description}}</p>
-             </p>
-          </div>
-          <div class="afpb__props_cons">
-             <div class="afpb__props_box">
-                <div class="afpb__props_cons_title">Props</div>
-                <div class="afpb__props_list" id="afpb__props_{{product_id}}" style="color:#333333">
-                    {{pros_list}}
-                </div>
-             </div>
-             <div class="afpb__cons_box">
-                <div class="afpb__props_cons_title">Cons</div>
-                <div class="afpb__cons_list" id="afpb__cons_{{product_id}}" style="color:#333333">
-                   {{cons_list}}
-                </div>
-             </div>
-          </div>
-       </div>
-    </div>
- </div>
- <!-- /wp:afpb/product-showcase -->
+<div class="wp-block-afpb-product-showcase">
+	<div class="afpb__product_info " style="border:1px solid #d7b837;border-radius:5px;background-color:#ffffff">
+		<div class="product_photo">
+            <img src="{{img_src}}" alt="{{img_alt}}" class="wp-image-38"/>
+                {{buttons}}
+            </div>
+		<div class="product_content">
+			<h2 style="color:#333333" class="title_tag">{{title}}</h2>
+			<div class="product_rating">
+				<span class="rating_value">{{rating}}</span>
+				<div class="review-rating" data-rate-value="{{rating}}"></div>
+			</div>
+			<div class="product_description" style="color:#333333">
+				<p>
+				<p>{{description}}</p>
+				</p>
+			</div>
+			<div class="afpb__props_cons">
+				<div class="afpb__props_box">
+					<div class="afpb__props_cons_title">Props</div>
+					<div class="afpb__props_list" style="color:#027000">
+						{{pros_list}}
+					</div>
+				</div>
+				<div class="afpb__cons_box">
+					<div class="afpb__props_cons_title">Cons</div>
+					<div class="afpb__cons_list" style="color:#A5001A">
+						{{cons_list}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

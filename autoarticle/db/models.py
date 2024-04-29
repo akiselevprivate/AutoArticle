@@ -78,9 +78,11 @@ class Product(BaseModel):
     full_name = TextField()
     description = TextField()
     reviews = JSONField()
+    rating = FloatField()
     price = FloatField()
-    # image_urls = JSONField(null=True)
-    # url = TextField()
+    image_url = TextField()
+    url = TextField()
+    source_name = TextField()
 
     is_generated = BooleanField(default=False)
 

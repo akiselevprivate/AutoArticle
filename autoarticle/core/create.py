@@ -88,7 +88,8 @@ def output_model_price():
 
 @create.command()
 @click.argument("config", type=click.File("r"))
-def collections(config):
+@click.option("--only-titles", "-ot", is_flag=True)
+def collections(config, only_titles):
     collections_config = json.load(config)
 
     gen_data = {}
@@ -201,7 +202,14 @@ def collections(config):
                     except Exception as e:
                         logger.error(f"Error creating article, probably duplicate: {e}")
 
-    logger.info("Created articles")
+    logger.info(f"Created {len(articles)} articles")
+
+
+@create.command()
+def existing():
+    collections: list[Collection] = Collection.select().order_by(Collection.id.asc())
+
+    articles = Article.select().where(Article.collection << collections)
 
     create_articles_base(
         articles,
@@ -210,14 +218,13 @@ def collections(config):
         settings.ARTICLE_LINK_COUNT,
     )
 
-    generate_embeddings(articles)
-
-    for col_id in collection_ids:
+    for col in collections:
         linking_articles: list[Article] = Article.select().where(
-            Article.collection == col_id
+            Article.collection == col
         )
+        generate_embeddings(linking_articles)
         create_linkings(linking_articles)
 
     create_anchors(articles)
 
-    logger.info(f"Finished creating {len(articles)} articles")
+    logger.info(f"Finished creating {len(articles)} article bases.")

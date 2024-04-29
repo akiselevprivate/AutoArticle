@@ -3,5 +3,7 @@ Generate short single sentence article titles with a keyword, Address an issue.
 Keep the titles short, under 70 chars.
 Never include numbers and dates in the title.
 Always single sentence
+Make the titles different from eachother.
+Focus on the category and topic.
 
 In JSON format with only a "titles" argument with flat array of string items, create {ammount} article titles on the topic {topic} of the category {category}:

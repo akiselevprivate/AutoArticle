@@ -19,7 +19,7 @@ def generate(collection):
     for idx, c in enumerate(collections, start=1):
         logger.info(f"Generating collection: {c.id}, ({idx}/{len(collections)})")
         articles = Article.select().where(Article.collection == c)
-        generate_articles(articles, settings.GENERATE_IMAGE, settings.FAQ_AMOUNT)
+        generate_articles(articles, settings.FAQ_AMOUNT, settings.GENERATE_IMAGE)
         logger.info(
             f"Finished generating collection: {c.id}, ({idx}/{len(collections)})"
         )

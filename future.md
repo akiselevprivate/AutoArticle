@@ -14,18 +14,14 @@ multiple connections to db
 
 generate micro topic for each article eg. BMW IX review for data
 
-search query for images, videos and data
-
-product reviews / comparisons
-get data such as description, title, reviews, ?price
-
-FAQs
+search query for data
 
 keywords and searches for titles and FAQs
 
-product characteristics, pros and cons list
-
 related articles in the middle
+
+add keywords to articles / outlines
+search for keywords fro titles
 
 ---
 

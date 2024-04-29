@@ -1,8 +1,9 @@
 from settings import prompts
 from utils.llm import json_llm_completion
+import numpy as np
 
 
-def generate_faq(data: str, topic: str, title: str, ammount: str):
+def generate_faq(data: str, topic: str, title: str, ammount: int):
 
     if data:
         base_prompt = prompts.FAQ.replace(r"{data_split}", "").replace(r"{data}", data)
@@ -16,9 +17,14 @@ def generate_faq(data: str, topic: str, title: str, ammount: str):
     )
 
     def test_dict_output(dict_completion):
-        return (
-            "faq" in dict_completion.keys() and len(dict_completion["faq"]) >= ammount
-        )
+        try:
+            np.array(
+                dict_completion["faq"]
+            ).shape == (ammount, 2)
+            return True
+        except:
+            return False
+        # return "faq" in dict_completion.keys() and 
 
     faq_dict, all_usages = json_llm_completion(
         prompt,

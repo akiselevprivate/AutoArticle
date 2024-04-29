@@ -1,5 +1,5 @@
 from settings.settings import settings
-from db.models import Article, Section
+from db.models import Article, Section, Product
 from utils.other import (
     replace_urls_in_markdown,
     remove_first_h2_markdown,
@@ -14,6 +14,11 @@ from settings.logger import logger
 from generation.utils import get_sections
 from upload.utils import trim_newlines
 from upload.api import upload_media, upload_article_request
+from upload.blocks import (
+    create_product_group,
+    create_product_item,
+    product_review_2_block,
+)
 
 import re
 import requests
@@ -24,7 +29,6 @@ import json
 
 def create_section_markdown(section: Section):
     markdown_components = []
-    markdown_components.append(f"## {section.title}")
 
     if section.product:
         markdown_components.append("### Product table (demo only)")
@@ -70,7 +74,9 @@ def create_section_markdown(section: Section):
     return "\n".join(markdown_components)
 
 
-def upload_article(article: Article, session: requests.Session, categories_dict: dict):
+def upload_article(
+    article: Article, date: str, session: requests.Session, categories_dict: dict
+):
 
     categorie_ids = [categories_dict[article.category]]
 
@@ -81,6 +87,9 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
         "categories": categorie_ids,
         "status": settings.PUBLISH_STATUS,
     }
+
+    if date:
+        post_data["date"] = date
 
     if article.image_id:  # TODO
         media_file_path = f"{settings.IMAGE_PATH}/{article.image_id}.webp"
@@ -93,6 +102,8 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
 
     sections: list[Section] = get_sections(article.id)
     section_image_tags = []
+    section_product_tags = []
+    product_group_items = []
     for section in sections:
         if section.image_id:
             media_file_path = f"{settings.IMAGE_PATH}/{section.image_id}.webp"
@@ -104,14 +115,50 @@ def upload_article(article: Article, session: requests.Session, categories_dict:
             section_image_tags.append(image_tag)
         else:
             section_image_tags.append(None)
+        if section.product:
+            product_item_tag = create_product_item(
+                section.product.short_name,
+                section.product.rating,
+                section.product.pros[0],
+                section.product.image_url,
+                f"{section.product.short_name} product image.",
+                f"${section.product.price} on {section.product.source_names[0]}",
+                section.product.urls[0],
+            )
+            product_group_items.append(product_item_tag)
+            product_review_tag = product_review_2_block(
+                section.product.short_name,
+                section.product.rating,
+                section.product.pros,
+                section.product.cons,
+                section.product.image_url,
+                f"{section.product.short_name} product image.",
+                [f"${section.product.price} on {section.product.source_name}"],
+                [section.product.url],
+            )
+            section_product_tags.append(product_review_tag)
+        else:
+            section_product_tags.append(None)
 
     full_html_list = []
-    for section, image_tag in zip(sections, section_image_tags):
+    for idx, (section, image_tag, product_review_tag) in enumerate(zip(
+        sections, section_image_tags, section_product_tags
+    )):
         section_markdown = create_section_markdown(section)
         section_html = markdown_to_html(section_markdown)
         if image_tag:
             full_html_list.append(image_tag)
+
+        if product_review_tag:
+            full_html_list.append(product_review_tag)
+        else:
+            full_html_list.append(f"## {section.title}")
         full_html_list.append(section_html)
+
+        if idx == 0 and product_group_items:
+            product_list_html = create_product_group(product_group_items)
+            full_html_list.append(product_list_html)
+
 
     if article.faq:
         full_html_list.append(markdown_to_html("### FAQ"))

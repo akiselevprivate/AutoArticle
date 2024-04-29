@@ -14,12 +14,8 @@ class Settings:
 
     SQLITE_DB_FILE: str
 
-    TOPIC: str
-    GEN_TITLES_COUNT: int
     ARTICLE_SECTIONS_COUNT: int
     ARTICLE_LINK_COUNT: int
-
-    CATEGORIES_COUNT: int
 
     REMOVE_FIRST_H3: bool
 
@@ -43,7 +39,7 @@ class Settings:
 
     PERPLEXITY_API_KEY: str
 
-    FAQ_AMOUNT: str
+    FAQ_AMOUNT: int
 
     SUFFIX_URL: str = ""
 

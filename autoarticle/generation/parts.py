@@ -414,11 +414,6 @@ def generate_articles(
         for article in articles:
 
             def gen_img(article: Article):
-                sections: list[Section] = Section.select().where(
-                    Section.article == article,
-                    Section.include_image == True,
-                    Section.image_id == None,
-                )
                 if article.image_req and not article.image_id:
                     if not article.image_description:
                         image_description = generate_hero_prompt(article.title)
@@ -430,6 +425,11 @@ def generate_articles(
                     article.image_id = image_uuid
                     article.save()
                 if article.image_req:
+                    sections: list[Section] = Section.select().where(
+                        Section.article == article,
+                        Section.include_image == True,
+                        Section.image_id == None,
+                    )
                     for section in sections:
                         if not section.image_description:
                             image_description = generate_section_prompt(
