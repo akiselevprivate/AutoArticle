@@ -16,7 +16,7 @@ You can use lists (-) instead of subheadings too.
 Never add comments, notes or sources.
 Dont use breaks ---.
 
-Only write a long 250 word {type} article section "{section_title}" of an article called "{title}". 
+Only write a long {word_count} word {type} article section "{section_title}" of an article called "{title}". 
 {link_prompt}Ensure that the content is very engaging, easy to read, informative, and relevant to the overall theme of the article. Write in {tone} tone.
 
 ## {section_title}

@@ -122,3 +122,14 @@ def markdown_to_text(markdown_string):
     text = "".join(soup.findAll(string=True))
 
     return re.sub(r"\[\d+\]", "", text)
+
+
+def batch(input_list: list, n: int):
+    # Calculate the size of each batch
+    batch_size = len(input_list) // n
+    # Initialize the list of batches
+    batches = []
+    # Split the input list into batches
+    for i in range(0, len(input_list), batch_size):
+        batches.append(input_list[i : i + batch_size])
+    return batches

@@ -46,7 +46,7 @@ def product_review_2_block(
     html = (
         PRODUCT_REVIEW_2_TEMPLATE.replace(r"{{title}}", title)
         .replace(r"{{rating}}", str(rating))
-        .replace(r"{{description}}", description)
+        .replace(r"{{description}}", "")
         .replace(r"{{pros_list}}", pros_list)
         .replace(r"{{cons_list}}", cons_list)
         .replace(r"{{img_src}}", img_src)
@@ -90,14 +90,14 @@ def create_product_group(product_items_htmls: list[str]):
     return html
 
 
-product_item = create_product_item(
-    "Gaming PC 1",
-    4.5,
-    "Cool Description",
-    "http://localhost/wp-content/uploads/2024/04/avatar-9.png",
-    "",
-    "$700 on amazon",
-    "https://google.com/",
-)
+# product_item = create_product_item(
+#     "Gaming PC 1",
+#     4.5,
+#     "Cool Description",
+#     "http://localhost/wp-content/uploads/2024/04/avatar-9.png",
+#     "",
+#     "$700 on amazon",
+#     "https://google.com/",
+# )
 
-open("test.html", "w+").write(create_product_group([product_item, product_item]))
+# open("test.html", "w+").write(create_product_group([product_item, product_item]))

@@ -12,15 +12,24 @@ def create_session():
     return session
 
 
-def upload_media(session: requests.Session, file_path: str, alt_text: str):
+def get_users(session: requests.Session):
+    url = settings.SITE_URL + "wp-json/wp/v2/users"
+    responce = session.get(url)
+    return responce.json()
+
+
+def upload_media(
+    session: requests.Session, file_path: str, alt_text: str, user_id: int
+):
     url = settings.SITE_URL + "wp-json/wp/v2/media"
-    name = generate_slug(alt_text)
+    name = generate_slug(" ".join(alt_text.split(" ")[:10]))
     multipart_data = MultipartEncoder(
         fields={
             # a file upload field
             "file": (name + ".webp", open(file_path, "rb"), "image/webp"),
             # plain text fields
             "alt_text": alt_text,
+            "author": str(user_id),
         }
     )
     response = session.post(

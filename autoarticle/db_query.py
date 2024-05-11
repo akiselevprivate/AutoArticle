@@ -1,7 +1,14 @@
-from db.models import Article, Collection
+from db.models import Article, Collection, Section
+from settings.settings import settings
+import requests
 
-articles = Article.select()
+sections: list[Section] = Section.select().join(Article).where(Article.collection == 1)
 
-titles = "\n".join([a.title for a in articles])
+for s in sections:
+    url = settings.SITE_URL + s.link.slug
+    req = requests.get(url)
 
-open("titles.txt", "w+").write(titles)
+    if req.status_code == 404:
+        print(url, "status 404")
+
+print(f"Checked {sections.count()} links")

@@ -28,7 +28,7 @@ def generate_outline(
     else:
         base_prompt = prompts.OUTLINE.split(r"{data_split}")[1]
 
-    if content_type == content.PRODUCT_COMPARISON:
+    if content_type == "PRODUCT_COMPARISON":
         outline_text = "first and the last sections of the article, make them questions not related to specific products."
     else:
         outline_text = "article"
@@ -81,6 +81,7 @@ def generate_section(
     article_type: str,
     tone: str,
     include_link: bool,
+    word_count: int,
     anchor: str = None,
     link_title: str = None,
 ) -> str:
@@ -117,6 +118,7 @@ Never add link separately.
         .replace(r"{type}", article_type)
         .replace(r"{full_outline}", full_outline_text)
         .replace(r"{tone}", tone)
+        .replace(r"{word_count}", str(word_count))
     )
 
     # open("prompt.txt", "w+").write(prompt)

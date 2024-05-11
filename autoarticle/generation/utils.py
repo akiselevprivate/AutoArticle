@@ -71,6 +71,8 @@ def anchor_matches(text: str):
 
 
 def generate_random_bool_list(length: int, number_of_trues: int):
+    if number_of_trues > length:
+        number_of_trues = length
     bool_list = [False] * length
     true_indices = random.sample(
         range(length), number_of_trues
@@ -81,10 +83,10 @@ def generate_random_bool_list(length: int, number_of_trues: int):
 
 
 def split_paragraphs(text):
-    if '\n\n' in text:
-        paragraphs = text.split('\n\n')
-    elif '\n' in text:
-        paragraphs = text.split('\n')
+    if "\n\n" in text:
+        paragraphs = text.split("\n\n")
+    elif "\n" in text:
+        paragraphs = text.split("\n")
     else:
         paragraphs = text.splitlines()
     return paragraphs

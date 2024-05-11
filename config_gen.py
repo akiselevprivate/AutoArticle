@@ -1,55 +1,64 @@
 import json
-from copy import copy
+from itertools import cycle
 
-categories = [
-    "Affiliate Marketing",
-    "Ai",
-    "Amazon",
-    "Ambassadors",
-    "Being A Housewife",
-    "Below 18",
-    "Blogging",
-    "Casino",
-    "Chatgpt",
-    "Crypto",
-    "Cryptocurrency",
-    "Facebook",
-    "For Beginners",
-    "For Students",
-    "Freelancing",
-    "From Home",
-    "Gambling",
-    "Gaming",
-    "In India",
-    "Instagram",
-    "Online Courses",
-    "Onlyfans",
-    "Pinterest",
-    "Telegram",
-    "Tiktok",
-    "Trading",
-    "Webcams",
-    "Without Any Skills",
-    "Without Investment",
-    "Youtube",
+
+topics = [
+    "make money from Onlyfans",
+    "earn money from Webcams",
+    "earn money from JustForFans",
+    "make money from Fanvue",
+    "more money from FanCentro",
+    "make money from Fansly",
+    "earn money from ManyVids",
+    "make money from Patreon",
+    "make money from Loyalfans",
+    "make money from Ifans",
 ]
 
-conf = json.load(open("config.json"))
+categories = [
+    "strategy",
+    "marketing",
+    "promoting",
+    "reddit",
+    "agency",
+    "sites",
+    "followers",
+    "subscribers",
+    "traffic",
+    "profit",
+    "instruction",
+    "tutorial",
+    "top models",
+]
 
-rev = copy(categories)
-rev.reverse()
 
-for i, z in zip(categories, rev):
-    data = {
-        "topic": "How to earn money",
-        "categories": [i, z],
-        "data_req": True,
-        "image_req": True,
-        "article_type": "informative",
-        "tone": "informative",
-        "content_type": "BASIC",
-        "amount": 2,
-    }
-    conf["collections"].append([data])
+topics_extended = cycle(topics)
+categories_extended = cycle(categories)
 
-json.dump(conf, open("config.json", "w+"))
+distibute = [[1, 25], [30, 1], [15, 2], [15, 3]]
+
+total_days = sum([i[0] for i in distibute])
+total_articles = sum([i[0] * i[1] for i in distibute])
+
+print("total days: ", total_days)
+print("total articles: ", total_articles)
+
+collections = []
+
+for days, amount in distibute:
+    for _ in range(days):
+        day = []
+        for _ in range(amount):
+            data = {
+                "topic": next(topics_extended),
+                "categories": [next(categories_extended)],
+                "data_req": True,
+                "image_req": True,
+                "content_type": "BASIC",
+                "amount": 1,
+            }
+            day.append(data)
+        collections.append(day)
+
+
+json.dump({"collections": collections}, open("config.json", "w+"))

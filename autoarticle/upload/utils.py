@@ -7,7 +7,7 @@ def create_image_tag(responce_json: dict):
         decoding="async"
         width="1024"
         height="546"
-        src="{large}"
+        src="{2048x2048}"
         alt="{alt}"
         class="wp-image"
         srcset="

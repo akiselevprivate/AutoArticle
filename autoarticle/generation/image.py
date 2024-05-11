@@ -12,17 +12,17 @@ def generate_hero_prompt(title: str):
         r"{additional}", ""
     )
     completion, usage = llm_completion(prompt, 100)
-    image_description = extract_text_from_quotes(prompt)
+    image_description = extract_text_from_quotes(completion)
     return image_description
 
 
 def generate_section_prompt(title: str, section: str):
-    additional = f" for the section: {section}"
+    additional = f' paragraph titled: "{section}"'
     prompt = prompts.IMAGE_DESCRIPTION.replace(r"{title}", title).replace(
         r"{additional}", additional
     )
     completion, usage = llm_completion(prompt, 100)
-    image_description = extract_text_from_quotes(prompt)
+    image_description = extract_text_from_quotes(completion)
     return image_description
 
 

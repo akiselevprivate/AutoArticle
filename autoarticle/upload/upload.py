@@ -19,6 +19,7 @@ from upload.blocks import (
     create_product_item,
     product_review_2_block,
 )
+from settings import content
 
 import re
 import requests
@@ -30,17 +31,17 @@ import json
 def create_section_markdown(section: Section):
     markdown_components = []
 
-    if section.product:
-        markdown_components.append("### Product table (demo only)")
-        markdown_components.append(f"Price: ${section.product.price}")
-        markdown_components.append("#### Pros")
-        for item in section.product.pros:
-            markdown_components.append(f"- {item}")
-        markdown_components.append("#### Cons")
-        for item in section.product.cons:
-            markdown_components.append(f"- {item}")
-        markdown_components.append(f"[{section.product.short_name} on Amazon    ]()")
-        markdown_components.append("---")
+    # if section.product:
+    #     markdown_components.append("### Product table (demo only)")
+    #     markdown_components.append(f"Price: ${section.product.price}")
+    #     markdown_components.append("#### Pros")
+    #     for item in section.product.pros:
+    #         markdown_components.append(f"- {item}")
+    #     markdown_components.append("#### Cons")
+    #     for item in section.product.cons:
+    #         markdown_components.append(f"- {item}")
+    #     markdown_components.append(f"[{section.product.short_name} on Amazon    ]()")
+    #     markdown_components.append("---")
 
     section_markdown = section.markdown
 
@@ -75,7 +76,11 @@ def create_section_markdown(section: Section):
 
 
 def upload_article(
-    article: Article, date: str, session: requests.Session, categories_dict: dict
+    article: Article,
+    date: str,
+    session: requests.Session,
+    categories_dict: dict,
+    user_id: int,
 ):
 
     categorie_ids = [categories_dict[article.category]]
@@ -86,6 +91,7 @@ def upload_article(
         "excerpt": article.excerpt,
         "categories": categorie_ids,
         "status": settings.PUBLISH_STATUS,
+        "author": user_id,
     }
 
     if date:
@@ -94,9 +100,7 @@ def upload_article(
     if article.image_id:  # TODO
         media_file_path = f"{settings.IMAGE_PATH}/{article.image_id}.webp"
         featured_image_id, _ = upload_media(
-            session,
-            media_file_path,
-            article.image_description,
+            session, media_file_path, article.image_description, user_id
         )
         post_data["featured_media"] = featured_image_id
 
@@ -108,9 +112,7 @@ def upload_article(
         if section.image_id:
             media_file_path = f"{settings.IMAGE_PATH}/{section.image_id}.webp"
             _, image_tag = upload_media(
-                session,
-                media_file_path,
-                section.image_description,
+                session, media_file_path, section.image_description, user_id
             )
             section_image_tags.append(image_tag)
         else:
@@ -122,18 +124,19 @@ def upload_article(
                 section.product.pros[0],
                 section.product.image_url,
                 f"{section.product.short_name} product image.",
-                f"${section.product.price} on {section.product.source_names[0]}",
-                section.product.urls[0],
+                f"${section.product.price:,.2f} on {section.product.source_name}",
+                section.product.url,
             )
             product_group_items.append(product_item_tag)
             product_review_tag = product_review_2_block(
                 section.product.short_name,
                 section.product.rating,
+                section.product.summary,
                 section.product.pros,
                 section.product.cons,
                 section.product.image_url,
                 f"{section.product.short_name} product image.",
-                [f"${section.product.price} on {section.product.source_name}"],
+                [f"${section.product.price:,.2f} on {section.product.source_name}"],
                 [section.product.url],
             )
             section_product_tags.append(product_review_tag)
@@ -141,24 +144,42 @@ def upload_article(
             section_product_tags.append(None)
 
     full_html_list = []
-    for idx, (section, image_tag, product_review_tag) in enumerate(zip(
-        sections, section_image_tags, section_product_tags
-    )):
+    for idx, (section, image_tag, product_review_tag) in enumerate(
+        zip(sections, section_image_tags, section_product_tags)
+    ):
         section_markdown = create_section_markdown(section)
         section_html = markdown_to_html(section_markdown)
         if image_tag:
             full_html_list.append(image_tag)
 
         if product_review_tag:
+            full_html_list.append(
+                markdown_to_html(f"## #{idx} [{section.title}]({section.product.url})")
+            )  # idx of sections, not products!!
             full_html_list.append(product_review_tag)
         else:
-            full_html_list.append(f"## {section.title}")
+            full_html_list.append(markdown_to_html(f"## {section.title}"))
+
         full_html_list.append(section_html)
 
-        if idx == 0 and product_group_items:
-            product_list_html = create_product_group(product_group_items)
-            full_html_list.append(product_list_html)
+        # if idx == 0 and product_group_items:
+        #     product_list_html = create_product_group(product_group_items)
+        #     full_html_list.append(product_list_html)
 
+        if idx == 0 and article.content_type == "PRODUCT_REVIEW":
+            product = Product.get(Product.article == article)
+            product_review_tag = product_review_2_block(
+                product.short_name,
+                product.rating,
+                product.summary,
+                product.pros,
+                product.cons,
+                product.image_url,
+                f"{product.short_name} product image.",
+                [f"${product.price:,.2f} on {product.source_name}"],
+                [product.url],
+            )
+            full_html_list.append(product_review_tag)
 
     if article.faq:
         full_html_list.append(markdown_to_html("### FAQ"))
@@ -168,7 +189,7 @@ def upload_article(
 
     if article.youtube_embed_url:
         video_id = extract_video_id(article.youtube_embed_url)
-        youtube_header = markdown_to_html(f"## Usefull video on {article.title}")
+        youtube_header = markdown_to_html(f"## Useful video on {article.title}")
         full_html_list.append(youtube_header)
         full_html_list.append(video_embed_html(video_id))
 

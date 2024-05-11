@@ -13,6 +13,7 @@ from generation.utils import generate_slug
 
 from utils.llm import rate_limiter
 from settings.logger import logger
+from settings.content import CONTENT_TYPES
 
 import json
 import jsonschema
@@ -86,6 +87,33 @@ def output_model_price():
 #     output_model_price()
 
 
+def finish_generation(collections: list[Collection] = None):
+    if not collections:
+        collections: list[Collection] = Collection.select().order_by(
+            Collection.id.asc()
+        )
+
+    articles = Article.select().where(Article.collection << collections)
+
+    create_articles_base(
+        articles,
+        settings.ARTICLE_SECTIONS_COUNT,
+        settings.EXTRA_IMAGES_PER_ARTICLE,
+        settings.ARTICLE_LINK_COUNT,
+    )
+
+    for col in collections:
+        linking_articles: list[Article] = Article.select().where(
+            Article.collection == col
+        )
+        generate_embeddings(linking_articles)
+        create_linkings(linking_articles)
+
+    create_anchors(articles)
+
+    logger.info(f"Finished creating {len(articles)} article bases.")
+
+
 @create.command()
 @click.argument("config", type=click.File("r"))
 @click.option("--only-titles", "-ot", is_flag=True)
@@ -94,23 +122,25 @@ def collections(config, only_titles):
 
     gen_data = {}
 
-    collection_ids = []
+    collections = []
     articles: list[Article] = []
 
     for collection in collections_config["collections"]:
-        collection_id = Collection.create().id
-        collection_ids.append(collection_id)
+        collection_inst = Collection.create()
+        collections.append(collection_inst)
         for part in collection:
+            if part["content_type"] not in CONTENT_TYPES.keys():
+                raise Exception(f'"{part["article_type"]}" not a valid content type')
 
             if "articles" in part.keys():
                 for art in part["articles"]:
                     try:
                         article = Article.create(
-                            collection=collection_id,
+                            collection=collection_inst.id,
                             topic=part["topic"],
                             category=part["categories"][0],
-                            article_type=part["article_type"],
-                            tone=part["tone"],
+                            article_type=CONTENT_TYPES[part["content_type"]]["type"],
+                            tone=CONTENT_TYPES[part["content_type"]]["tone"],
                             title=art["title"],
                             slug=generate_slug(art["title"]),
                             additional_data=art["data"],
@@ -145,10 +175,8 @@ def collections(config, only_titles):
             ] * (len(categories) - 1)
             for cat, amm in zip(categories, ammount_list):
                 cat_data = [
-                    collection_id,
+                    collection_inst.id,
                     amm,
-                    part["article_type"],
-                    part["tone"],
                     part["data_req"],
                     part["image_req"],
                     part["content_type"],
@@ -157,6 +185,9 @@ def collections(config, only_titles):
                     gen_data[part["topic"]][cat] = [cat_data]
                 else:
                     gen_data[part["topic"]][cat].append(cat_data)
+
+    # json.dump(gen_data, open("dump.json", "w+"))
+    # quit()
 
     def split_list(data, split):
         result = []
@@ -182,7 +213,7 @@ def collections(config, only_titles):
             for (
                 titles,
                 col_id,
-                (article_type, tone, data_req, image_req, content_type),
+                (data_req, image_req, content_type),
             ) in zip(split_data, col_ids, other_data):
                 for title in titles:
                     try:
@@ -190,8 +221,8 @@ def collections(config, only_titles):
                             collection=col_id,
                             topic=topic,
                             category=cat,
-                            article_type=article_type,
-                            tone=tone,
+                            article_type=CONTENT_TYPES[content_type]["type"],
+                            tone=CONTENT_TYPES[content_type]["tone"],
                             title=title,
                             slug=generate_slug(title),
                             data_req=data_req,
@@ -204,27 +235,12 @@ def collections(config, only_titles):
 
     logger.info(f"Created {len(articles)} articles")
 
+    if only_titles:
+        open("titles.txt", "w+").write("\n".join([a.title for a in Article.select()]))
+    else:
+        finish_generation(collections)
+
 
 @create.command()
 def existing():
-    collections: list[Collection] = Collection.select().order_by(Collection.id.asc())
-
-    articles = Article.select().where(Article.collection << collections)
-
-    create_articles_base(
-        articles,
-        settings.ARTICLE_SECTIONS_COUNT,
-        settings.EXTRA_IMAGES_PER_ARTICLE,
-        settings.ARTICLE_LINK_COUNT,
-    )
-
-    for col in collections:
-        linking_articles: list[Article] = Article.select().where(
-            Article.collection == col
-        )
-        generate_embeddings(linking_articles)
-        create_linkings(linking_articles)
-
-    create_anchors(articles)
-
-    logger.info(f"Finished creating {len(articles)} article bases.")
+    finish_generation()
