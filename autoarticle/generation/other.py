@@ -52,6 +52,27 @@ def generate_titles(topic: str, category: str, ammount: int) -> list[str]:
     return titles_list
 
 
+def generate_title(topic: str, category: str, tag: str):
+    prompt = (
+        prompts.TITLES.replace(r"{category}", category)
+        .replace(r"{topic}", topic)
+        .replace(r"{tag}", tag)
+    )
+
+    def test_dict_output(dict_completion: dict):
+        return "title" in dict_completion.keys()
+
+    try:
+        title_dict, all_usages = json_llm_completion(
+            prompt, 300, throw_exception=True, other_checks_func=test_dict_output
+        )
+    except Exception as e:
+        logger.error("error generating title", e)
+        raise Exception("error generating title")
+
+    return title_dict["title"]
+
+
 def generate_anchors(title: str, ammount: int, existing_anchors: list[str]):
 
     prompt = prompts.ANCHOR.replace(r"{title}", title).replace(

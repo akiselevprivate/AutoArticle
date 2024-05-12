@@ -2,7 +2,8 @@ import json
 from settings.settings import settings
 
 
-TITLES = open(settings.TITLE_PROMPT_FILE, "r").read()
+TITLE = open(settings.TITLE_PROMPT_FILE, "r").read()
+TITLES = open(settings.TITLES_PROMPT_FILE, "r").read()
 CATEGORIES = open(settings.CATEGORIES_PROMPT_FILE, "r").read()
 OUTLINE = open(settings.OUTLINE_PROMPT_FILE, "r").read()
 SECTION = open(settings.SECTION_PROMPT_FILE, "r").read()

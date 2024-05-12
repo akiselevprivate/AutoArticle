@@ -1,0 +1,1 @@
+write a JSON with "title" atribute, with a string. The title is for an article on the topic: "{topic}", category: "{category}", focus on "{tag}". JSON:

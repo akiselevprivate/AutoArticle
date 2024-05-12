@@ -49,9 +49,10 @@ class Settings:
     PRICE_PER_THOUSAND_INPUT_TOKENS: float = 0.001
     PRICE_PER_THOUSAND_OUTPUT_TOKENS: float = 0.002
 
+    TITLE_PROMPT_FILE: str = "prompts/title.txt"
     OUTLINE_PROMPT_FILE: str = "prompts/outline.txt"
     SECTION_PROMPT_FILE: str = "prompts/sections.txt"
-    TITLE_PROMPT_FILE: str = "prompts/titles.txt"
+    TITLES_PROMPT_FILE: str = "prompts/titles.txt"
     CATEGORIES_PROMPT_FILE: str = "prompts/categories.txt"
     ANCHORS_PROMPT_FILE: str = "prompts/anchors.txt"
     ADDITIONAL_DATA_PROMPT_FILE: str = "prompts/additional_data.txt"

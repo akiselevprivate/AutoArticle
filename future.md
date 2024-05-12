@@ -12,16 +12,15 @@ database migration
 
 generate micro topic for each article eg. BMW IX review for data
 
-search query for data
-
-keywords and searches for titles and FAQs
-
 related articles in the middle
 
-add keywords to articles / outlines
-search for keywords fro titles
-
 add a word target for sections !!!!
+
+add tags to db
+
+let ai decide the number of sections
+
+add data query to db
 
 ---
 
