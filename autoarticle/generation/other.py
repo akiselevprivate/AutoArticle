@@ -54,23 +54,23 @@ def generate_titles(topic: str, category: str, ammount: int) -> list[str]:
 
 def generate_title(topic: str, category: str, tag: str):
     prompt = (
-        prompts.TITLES.replace(r"{category}", category)
+        prompts.TITLE.replace(r"{category}", category)
         .replace(r"{topic}", topic)
         .replace(r"{tag}", tag)
     )
 
     def test_dict_output(dict_completion: dict):
-        return "title" in dict_completion.keys()
+        return all([v in dict_completion.keys() for v in ["title", "search_query"]])
 
     try:
         title_dict, all_usages = json_llm_completion(
-            prompt, 300, throw_exception=True, other_checks_func=test_dict_output
+            prompt, 120, throw_exception=True, other_checks_func=test_dict_output
         )
     except Exception as e:
         logger.error("error generating title", e)
         raise Exception("error generating title")
 
-    return title_dict["title"]
+    return title_dict["title"], title_dict["search_query"]
 
 
 def generate_anchors(title: str, ammount: int, existing_anchors: list[str]):
@@ -102,7 +102,7 @@ def generate_anchors(title: str, ammount: int, existing_anchors: list[str]):
 
 
 def generate_addiional_data(title: str):
-    prompt = prompts.ADDITIONAL_DATA.replace(r"{title}", title)
+    prompt = prompts.ADDITIONAL_DATA.replace(r"{query}", title)
     completion, usage = perplexity_llm(prompt, 300)
 
     # open("data.txt", "w+").write(completion)

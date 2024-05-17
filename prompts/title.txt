@@ -1,1 +1,2 @@
-write a JSON with "title" atribute, with a string. The title is for an article on the topic: "{topic}", category: "{category}", focus on "{tag}". JSON:
+write an engaging, very simple, SEO title/most popular search query for an article about "{topic}, {category}, {tag}". Keep the titles under 70 chars.
+Output a JSON with "title" attribute. Also add a "search_query" with a string google search for the information for this article. JSON:

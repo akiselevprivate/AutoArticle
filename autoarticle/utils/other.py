@@ -26,7 +26,10 @@ def replace_urls_in_markdown(input_string, new_url):
         else:
             return "[{}]({})".format(match.group(1), new_url)
 
-    replaced_string = re.sub(LINK_PATTERN, replace_func, input_string)
+    try:
+        replaced_string = re.sub(LINK_PATTERN, replace_func, input_string)
+    except:
+        print(input_string)
 
     return replaced_string
 
@@ -124,12 +127,6 @@ def markdown_to_text(markdown_string):
     return re.sub(r"\[\d+\]", "", text)
 
 
-def batch(input_list: list, n: int):
-    # Calculate the size of each batch
-    batch_size = len(input_list) // n
-    # Initialize the list of batches
-    batches = []
-    # Split the input list into batches
-    for i in range(0, len(input_list), batch_size):
-        batches.append(input_list[i : i + batch_size])
-    return batches
+def batch(xs, n):
+    n = max(1, n)
+    return [xs[i : i + n] for i in range(0, len(xs), n)]

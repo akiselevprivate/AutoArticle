@@ -37,10 +37,16 @@ class Article(BaseModel):
 
     topic = TextField()
     category = TextField()
+    tag = TextField()
+
+    expected_word_count = IntegerField()
 
     article_type = TextField()
     content_type = TextField()
     tone = TextField()
+
+    data_query = TextField()
+
     data_req = BooleanField()
     image_req = BooleanField()
 
@@ -99,6 +105,8 @@ class Section(BaseModel):
 
     title = TextField()
     idx = IntegerField()
+    expected_word_count = IntegerField()
+
     include_link = BooleanField()
     include_image = BooleanField()
 

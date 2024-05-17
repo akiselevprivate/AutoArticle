@@ -44,8 +44,8 @@ def finish_generation(collections: list[Collection] = None):
     create_articles_base(
         articles,
         settings.ARTICLE_SECTIONS_COUNT,
-        settings.EXTRA_IMAGES_PER_ARTICLE,
-        settings.ARTICLE_LINK_COUNT,
+        settings.EXTRA_IMAGES_PER_ARTICLE_PERCENTAGE,
+        settings.ARTICLE_LINK_PERCENTAGE,
     )
 
     for col in collections:
@@ -64,7 +64,7 @@ def finish_generation(collections: list[Collection] = None):
 @click.argument("config", type=str)
 @click.argument("distribution", type=str)
 def config(config, distribution):
-    article_csv_data = pd.read_csv(config).values.tolist()
+    article_csv_data = pd.read_csv(config).fillna("").values.tolist()
     article_iterator = iter(article_csv_data)
 
     distribution = eval(distribution)
@@ -76,6 +76,8 @@ def config(config, distribution):
 
     print("total days: ", total_days)
     print("total articles: ", total_articles)
+
+    print("total articles in csv: ", len(article_csv_data))
 
     assert total_articles <= len(article_csv_data)
 
@@ -99,6 +101,7 @@ def config(config, distribution):
             collections.append(day)
 
     json.dump({"collections": collections}, open("config.json", "w+"), indent=2)
+    print("Saved config to config.json")
 
 
 @create.command()
@@ -114,15 +117,29 @@ def collections(config, only_titles):
         collection_inst = Collection.create()
         collections.append(collection_inst)
         for a_data in collection:
-            title = generate_title(a_data["topic"], a_data["category"], a_data["tag"])
-            article = Article.create(
-                collection=collection_inst,
-                article_type=CONTENT_TYPES[a_data["content_type"]]["type"],
-                tone=CONTENT_TYPES[a_data["content_type"]]["tone"],
-                title=title,
-                slug=generate_slug(title),
-                **a_data,
+            title, data_query = generate_title(
+                a_data["topic"], a_data["category"], a_data["tag"]
             )
+            try:
+                article = Article.create(
+                    collection=collection_inst,
+                    article_type=CONTENT_TYPES[a_data["content_type"]]["type"],
+                    tone=CONTENT_TYPES[a_data["content_type"]]["tone"],
+                    expected_word_count=CONTENT_TYPES[a_data["content_type"]][
+                        "word_count"
+                    ],
+                    title=title,
+                    slug=generate_slug(title),
+                    data_query=data_query,
+                    topic=a_data["topic"],
+                    category=a_data["category"],
+                    tag=a_data["tag"],
+                    data_req=a_data["data_req"],
+                    image_req=a_data["image_req"],
+                    content_type=a_data["content_type"],
+                )
+            except:
+                logger.error("Duplicate title found")
             articles.append(article)
 
     logger.info(f"Created {len(articles)} articles")
@@ -131,6 +148,7 @@ def collections(config, only_titles):
         open("generated_titles.txt", "w+").write(
             "\n".join([a.title for a in Article.select()])
         )
+        print("Saved titles to generated_titles.txt")
     else:
         finish_generation(collections)
 

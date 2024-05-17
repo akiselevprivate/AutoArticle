@@ -3,12 +3,15 @@ import re
 
 
 def get_video_url(title: str):
-    videosSearch = CustomSearch(title, VideoSortOrder.relevance, limit=1)
-    result = videosSearch.result()["result"]
-    if len(result) == 0:
+    try:
+        videosSearch = CustomSearch(title, VideoSortOrder.relevance, limit=1)
+        result = videosSearch.result()["result"]
+        if len(result) == 0:
+            return None
+        url = result[0]["link"]
+        return url
+    except:
         return None
-    url = result[0]["link"]
-    return url
 
 
 def extract_video_id(url):

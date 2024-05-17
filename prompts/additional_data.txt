@@ -1,1 +1,1 @@
-detailed paragraph about {title}:
+detailed paragraph about {query}:

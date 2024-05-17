@@ -37,7 +37,7 @@ def upload_articles(articles: list[Article], date: str = None):
     user_ids = []
     admin_id = None
     for d in users_dict:
-        if d["name"] == "admin":
+        if "admin" in d["name"]:
             admin_id = d["id"]
         else:
             user_ids.append(d["id"])
@@ -49,7 +49,21 @@ def upload_articles(articles: list[Article], date: str = None):
     for idx, article in enumerate(articles):
         # try:
 
-        if not user_ids:
+        if settings.USER_POST_USERNAME != "":
+            user_id = next(
+                (
+                    d["id"]
+                    for d in users_dict
+                    if d.get("name").lower() == settings.USER_POST_USERNAME.lower()
+                ),
+                None,
+            )
+            try:
+                assert user_id
+            except:
+                print(users_dict)
+                raise
+        elif not user_ids:
             user_id = admin_id
         else:
             user_id = random.choice(user_ids)

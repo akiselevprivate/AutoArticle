@@ -10,18 +10,18 @@ from generation.other import (
     generate_addiional_data,
     generate_split_data,
 )
-from generation.utils import generate_slug, get_sections, generate_random_bool_list
+from generation.utils import get_sections, generate_random_bool_list
 from generation.product import generate_product_outline
 from generation.faq import generate_faq
 
 from db.models import Article, Section, Product
 from settings.logger import logger
-from settings.content import CONTENT_TYPES
 from utils.other import count_words_in_markdown, batch
 from utils.youtube import get_video_url
 
 import time
 import threading
+import math
 
 
 # def create_article_titles(
@@ -106,12 +106,12 @@ import threading
 def create_articles_base(
     articles: list[Article],
     default_sections_ammount: int,
-    images_per_article: int,
-    links_per_article: int,
+    images_per_article_percentage: int,
+    links_per_article_percentage: int,
 ):
     for article in articles:
         if article.data_req and not article.additional_data:
-            additional_data = generate_addiional_data(article.title)
+            additional_data = generate_addiional_data(article.data_query)
             article.additional_data = additional_data
             article.save()
 
@@ -175,15 +175,29 @@ def create_articles_base(
                 )
                 products = [None] + list(products) + [None]
 
-            sections_inlude_link = generate_random_bool_list(
-                sections_ammount, links_per_article
+            available_linking_articles_count = (
+                Article.select().where(Article.collection <= article.collection).count()
+                - 1
             )
+            linking_articles_amount = math.ceil(
+                sections_ammount * links_per_article_percentage
+            )
+
+            if linking_articles_amount > available_linking_articles_count:
+                linking_articles_amount = available_linking_articles_count
+
+            sections_inlude_link = generate_random_bool_list(
+                sections_ammount, linking_articles_amount
+            )
+
             if article.content_type == "PRODUCT_COMPARISON":
                 sections_include_image = [False] * sections_ammount
             else:
                 sections_include_image = [False] + generate_random_bool_list(
-                    sections_ammount - 1, images_per_article
+                    sections_ammount - 1,
+                    math.ceil(sections_ammount * images_per_article_percentage),
                 )
+            section_word_count = int(article.expected_word_count / len(sections))
             for idx, (title, include_link, include_image, product) in enumerate(
                 zip(sections, sections_inlude_link, sections_include_image, products)
             ):
@@ -194,6 +208,7 @@ def create_articles_base(
                     include_link=include_link,
                     include_image=include_image,
                     product=product,
+                    expected_word_count=section_word_count,
                 )
             article.excerpt = outline_dict["excerpt"]
             article.video_query = outline_dict["video_query"]
@@ -352,8 +367,6 @@ def generate_articles(
             )
             all_section_titles = [s.title for s in get_sections(article.id)]
 
-            word_count = CONTENT_TYPES[article.content_type]["word_count"]
-
             for section in sections:
 
                 def gen(section: Section):
@@ -373,7 +386,7 @@ def generate_articles(
                         article.article_type,
                         article.tone,
                         section.include_link,
-                        word_count,
+                        section.expected_word_count,
                         section.anchor if section.include_link else None,
                         section.link.title if section.include_link else None,
                     )
@@ -412,50 +425,73 @@ def generate_articles(
 
     if should_generate_hero_image:
 
-        article_batches = batch(articles, 3)  # 3x5 (3x amount of images per article)
+        for article in articles:
+            if not article.image_req:
+                continue
+
+            if not article.image_description:
+                image_description = generate_hero_prompt(article.title)
+                article.image_description = image_description
+                article.save()
+
+            sections: list[Section] = Section.select().where(
+                Section.article == article,
+                Section.include_image == True,
+                Section.image_id == None,
+            )
+
+            for section in sections:
+                if not section.image_description:
+                    image_description = generate_section_prompt(
+                        article.title, section.title
+                    )
+                    section.image_description = image_description
+                    section.save()
+
+        def gen_main_img(article: Article, array: list):
+            image_description = article.image_description
+            image_uuid = generate_hero_image_from_prompt(image_description)
+            article.image_id = image_uuid
+            array.append(article)
+
+        def gen_section_img(section: Section, array: list):
+            image_description = section.image_description
+            image_uuid = generate_hero_image_from_prompt(image_description)
+            section.image_id = image_uuid
+            array.append(section)
+
+        db_obj_list = []
+        article_batches = batch(articles, 2)  # 3x5 (3x amount of images per article)
         for article_batch in article_batches:
             threads = []
 
             for article in article_batch:
 
-                def gen_img(article: Article):
-                    if article.image_req and not article.image_id:
-                        if not article.image_description:
-                            image_description = generate_hero_prompt(article.title)
-                            article.image_description = image_description
-                            article.save()
-                        else:
-                            image_description = article.image_description
-                        image_uuid = generate_hero_image_from_prompt(image_description)
-                        article.image_id = image_uuid
-                        article.save()
-                    if article.image_req:
-                        sections: list[Section] = Section.select().where(
-                            Section.article == article,
-                            Section.include_image == True,
-                            Section.image_id == None,
+                if article.image_req and not article.image_id:
+                    gen_main_img(article, db_obj_list)
+                    thread = threading.Thread(
+                        target=gen_main_img, args=(article, db_obj_list)
+                    )
+                    thread.start()
+                    threads.append(thread)
+
+                if article.image_req:
+                    sections: list[Section] = Section.select().where(
+                        Section.article == article,
+                        Section.include_image == True,
+                        Section.image_id == None,
+                    )
+                    for section in sections:
+                        thread = threading.Thread(
+                            target=gen_section_img, args=(section, db_obj_list)
                         )
-                        for section in sections:
-                            if not section.image_description:
-                                image_description = generate_section_prompt(
-                                    article.title, section.title
-                                )
-                                section.image_description = image_description
-                                section.save()
-                            else:
-                                image_description = section.image_description
-                            image_uuid = generate_hero_image_from_prompt(
-                                image_description
-                            )
-                            section.image_id = image_uuid
-                            section.save()
+                        thread.start()
+                        threads.append(thread)
 
-                # thread = threading.Thread(target=gen_img, args=(article,))
-                # thread.start()
-                # threads.append(thread)
-                gen_img(article)
+            [t.join() for t in threads]  # wait for batch to complete
 
-            # [t.join() for t in threads]  # wait for batch to complete
+            for obj in db_obj_list:
+                obj.save()
 
         logger.info(f"Generated images.")
 

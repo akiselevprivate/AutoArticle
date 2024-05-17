@@ -15,7 +15,7 @@ class Settings:
     SQLITE_DB_FILE: str
 
     ARTICLE_SECTIONS_COUNT: int
-    ARTICLE_LINK_COUNT: int
+    ARTICLE_LINK_PERCENTAGE: float
 
     REMOVE_FIRST_H3: bool
 
@@ -24,7 +24,7 @@ class Settings:
     IMAGE_PATH: str
     GENERATE_IMAGE: bool
 
-    EXTRA_IMAGES_PER_ARTICLE: int
+    EXTRA_IMAGES_PER_ARTICLE_PERCENTAGE: float
 
     REPLICATE_API_TOKEN: str
     IMAGE_MODEL: str
@@ -40,6 +40,8 @@ class Settings:
     PERPLEXITY_API_KEY: str
 
     FAQ_AMOUNT: int
+
+    USER_POST_USERNAME: str = ""
 
     SUFFIX_URL: str = ""
 
@@ -80,7 +82,10 @@ class Settings:
             field_name = field.name
             field_type = field.type
             if type(field.default) != _MISSING_TYPE:
-                converted_vars[field_name] = field.default
+                if field_name in env_vars.keys():
+                    converted_vars[field_name] = field_type(env_vars[field_name])
+                else:
+                    converted_vars[field_name] = field.default
                 continue
             if field_name in env_vars and env_vars[field_name] is not None:
                 if field_type == bool:

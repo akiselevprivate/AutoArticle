@@ -5,5 +5,5 @@ Article Data:
 
 Use the data above for FAQ questions and answers.{data_split}
 
-Output a JSON with an attribute "faq" which has exactly {ammount} arrays of 2 strings, where each array is a frequently asked question and an informative answer. 
+Output a JSON with only an attribute "faq" which has exactly {ammount} arrays of 2 strings, where each array is a frequently asked question and an informative answer. 
 Create a JSON on the topic {topic} for an article: "{title}":
