@@ -1,5 +1,4 @@
 import click
-import jsonschema.exceptions
 from db.models import Article, Collection, Product
 from settings.settings import settings
 from generation.parts import (
@@ -16,9 +15,8 @@ from settings.logger import logger
 from settings.content import CONTENT_TYPES
 
 import json
-import jsonschema
 import pandas as pd
-import numpy as np
+from itertools import cycle
 
 
 @click.group()
@@ -65,7 +63,6 @@ def finish_generation(collections: list[Collection] = None):
 @click.argument("distribution", type=str)
 def config(config, distribution):
     article_csv_data = pd.read_csv(config).fillna("").values.tolist()
-    article_iterator = iter(article_csv_data)
 
     distribution = eval(distribution)
 
@@ -73,6 +70,25 @@ def config(config, distribution):
 
     total_days = sum([i[0] for i in distribution])
     total_articles = sum([i[0] * i[1] for i in distribution])
+
+    data = {}
+
+    for d in article_csv_data:
+        if d[1] not in data:
+            data[d[1]] = []
+        data[d[1]].append(d)
+
+    out = []
+
+    cats = cycle(data.keys())
+
+    while len(out) != len(article_csv_data):
+        cat = next(cats)
+        if len(data[cat]) > 0:
+            d = data[cat].pop()
+            out.append(d)
+
+    article_iterator = iter(out)
 
     print("total days: ", total_days)
     print("total articles: ", total_articles)
@@ -145,9 +161,7 @@ def collections(config, only_titles):
     logger.info(f"Created {len(articles)} articles")
 
     if only_titles:
-        open("generated_titles.txt", "w+").write(
-            "\n".join([a.title for a in Article.select()])
-        )
+        open("generated_titles.txt", "w+").write("\n".join([a.title for a in articles]))
         print("Saved titles to generated_titles.txt")
     else:
         finish_generation(collections)

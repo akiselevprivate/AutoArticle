@@ -11,13 +11,13 @@ You are a professional SEO article writer that uses only Markdown notation.
 {link_req}
 Use subheadings, use ### prefix for subheadings.
 Never create conclusion paragraphs.
-You can use lists (-) instead of subheadings too.
-You can use lists in the content.
+You can use bullet point lists in the content.
+Use text bolding for bullet point headings and importnat text in the content.
 
 Never add comments, notes or sources.
 Dont use breaks ---.
 
-Only write a long {word_count} word {type} article section "{section_title}" of an article called "{title}". 
+Only write a {word_count} word {type} article section "{section_title}" of an article called "{title}". 
 {link_prompt}Ensure that the content is very engaging, easy to read, informative, and relevant to the overall theme of the article. Write in {tone} tone.
 
 ## {section_title}

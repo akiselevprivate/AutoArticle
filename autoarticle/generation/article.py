@@ -62,6 +62,8 @@ def generate_outline(
 
     # json.dump(outline_dict, open("dump.json", "w+"))
 
+    outline_dict["outline"] = outline_dict["outline"][:sections_ammount]
+
     return outline_dict
 
 

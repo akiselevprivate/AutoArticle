@@ -18,6 +18,25 @@ let ai decide the number of sections
 
 add no hands to the images
 
+set a linking distance bound
+
+Add keywords (Use Synonyms and LSI Keywords)
+keywords in url / short url
+Add source embeddings
+Introductions (first 150 words best for google)
+Use keywords in H1, H2, H3 (Front-Load Your Keyword In Your Title Tag (first in title))
+Better Alt tags
+
+better excerpts
+
+google suggest
+
+Interactive polls and quizes
+
+Dead weight pages
+
+reddit keywords
+
 ---
 
 set priority to articles which to link to

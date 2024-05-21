@@ -89,4 +89,4 @@ def json_llm_completion(
             if tries_count == settings.INVALID_JSON_TRIES:
                 if throw_exception:
                     raise Exception("failed json completion")
-                return None, all_usages
+                return dict_completion, all_usages
