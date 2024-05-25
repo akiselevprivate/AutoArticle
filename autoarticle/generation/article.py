@@ -12,7 +12,8 @@ import json
 
 def generate_outline(
     title: str,
-    sections_ammount: int,
+    min_sections_count: int,
+    max_sections_count: int,
     topic: str,
     category: str,
     article_data: str,
@@ -38,7 +39,8 @@ def generate_outline(
     prompt = (
         base_prompt.replace(r"{title}", title)
         .replace(r"{outline_text}", outline_text)
-        .replace(r"{sections_ammount}", str(sections_ammount))
+        .replace(r"{min_sections_count}", str(min_sections_count))
+        .replace(r"{max_sections_count}", str(max_sections_count))
         .replace(r"{topic}", topic)
         .replace(r"{category}", category)
         .replace(r"{type}", article_type)
@@ -53,7 +55,8 @@ def generate_outline(
                     for v in ["outline", "excerpt", "video_query"]
                 ]
             )
-            and len(dict_completion["outline"]) == sections_ammount
+            and len(dict_completion["outline"]) >= min_sections_count
+            and len(dict_completion["outline"]) <= max_sections_count
         )
 
     outline_dict, all_usages = json_llm_completion(
@@ -62,7 +65,7 @@ def generate_outline(
 
     # json.dump(outline_dict, open("dump.json", "w+"))
 
-    outline_dict["outline"] = outline_dict["outline"][:sections_ammount]
+    outline_dict["outline"] = outline_dict["outline"][:max_sections_count]
 
     return outline_dict
 

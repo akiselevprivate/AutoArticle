@@ -1,1 +1,3 @@
 {image_description}. life realistic photo
+---
+{image_description}. adobe illustrator, centered

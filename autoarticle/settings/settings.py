@@ -14,7 +14,9 @@ class Settings:
 
     SQLITE_DB_FILE: str
 
-    ARTICLE_SECTIONS_COUNT: int
+    MIN_ARTICLE_SECTIONS_COUNT: int
+    MAX_ARTICLE_SECTIONS_COUNT: int
+
     ARTICLE_LINK_PERCENTAGE: float
 
     REMOVE_FIRST_H3: bool
@@ -64,8 +66,8 @@ class Settings:
     FAQ_PROMPT_FILE: str = "prompts/faq.txt"
     PRODUCT_OUTLINE_PROMPT_FILE: str = "prompts/product_outline.txt"
 
-    INVALID_JSON_TRIES: int = 3
-    MAX_SECTION_RETRIES: int = 3
+    INVALID_JSON_TRIES: int = 4
+    MAX_SECTION_RETRIES: int = 2
     MAX_ANCHOR_RETRIES: int = 2
 
     def model_dump(self):

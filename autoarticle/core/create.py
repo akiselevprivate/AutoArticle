@@ -41,7 +41,8 @@ def finish_generation(collections: list[Collection] = None):
 
     create_articles_base(
         articles,
-        settings.ARTICLE_SECTIONS_COUNT,
+        settings.MIN_ARTICLE_SECTIONS_COUNT,
+        settings.MAX_ARTICLE_SECTIONS_COUNT,
         settings.EXTRA_IMAGES_PER_ARTICLE_PERCENTAGE,
         settings.ARTICLE_LINK_PERCENTAGE,
     )

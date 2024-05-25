@@ -6,6 +6,5 @@ Data:
 Article Sections:
 {sections}
 
-You have to distribute the data in to exactly {ammount} detailed paragraphs with information for each article section.
-Include all the detailed info.
-Output a JSON with "paragraphs" attribute with a list of exactly {ammount} string items of text paragraphs from the data above, JSON:
+For each Article Sections create a detailed paragraph with unique information.
+Output a JSON with "paragraphs" attribute with a list of exactly {ammount} string items of text, paragraphs of information from the data above, JSON:

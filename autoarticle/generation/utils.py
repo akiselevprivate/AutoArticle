@@ -20,6 +20,8 @@ def generate_slug(text: str):
     # Remove consecutive hyphens
     url = "-".join(url.strip().split(" "))
 
+    url = url.replace("--", "-")
+
     return url
 
 

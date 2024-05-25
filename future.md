@@ -27,7 +27,7 @@ Introductions (first 150 words best for google)
 Use keywords in H1, H2, H3 (Front-Load Your Keyword In Your Title Tag (first in title))
 Better Alt tags
 
-better excerpts
+better excerpts / descriptions / meta
 
 google suggest
 
@@ -36,6 +36,8 @@ Interactive polls and quizes
 Dead weight pages
 
 reddit keywords
+
+introduction
 
 ---
 

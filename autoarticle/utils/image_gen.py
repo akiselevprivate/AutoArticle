@@ -3,13 +3,17 @@ from settings.settings import settings
 from settings.logger import logger
 from settings import prompts
 from PIL import Image
+import random
 
 
 client = Client(api_token=settings.REPLICATE_API_TOKEN)
 
 
 def generate_image(image_description: str):
-    prompt = prompts.IMAGE_GENERATION.replace(r"{image_description}", image_description)
+    print(prompts.IMAGE_GENERATION.split("---"))
+    current_prompt = random.choice(prompts.IMAGE_GENERATION.split("---"))
+    print(current_prompt)
+    prompt = current_prompt.replace(r"{image_description}", image_description)
     for _ in range(3):
         try:
             output = client.run(

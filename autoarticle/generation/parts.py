@@ -105,7 +105,8 @@ import math
 
 def create_articles_base(
     articles: list[Article],
-    default_sections_ammount: int,
+    min_sections_count: int,
+    max_sections_count: int,
     images_per_article_percentage: int,
     links_per_article_percentage: int,
 ):
@@ -142,24 +143,23 @@ def create_articles_base(
 
             products: list[Product] = Product.select().where(Product.article == article)
 
-            if article.content_type == "PRODUCT_REVIEW":
-                additional_data = products[0].summary
-            else:
-                additional_data = article.additional_data
+            # if article.content_type == "PRODUCT_REVIEW":
+            #     additional_data = products[0].summary
+            # else:
+            #     additional_data = article.additional_data
 
-            if article.content_type == "PRODUCT_COMPARISON":
-                sections_ammount = products.count() + 2
-            else:
-                products = [None] * default_sections_ammount
-                sections_ammount = default_sections_ammount
+            # if article.content_type == "PRODUCT_COMPARISON":
+            #     sections_ammount = products.count() + 2
+            # else:
+            #     products = [None] * default_sections_ammount
+            #     sections_ammount = default_sections_ammount
+
+            assert article.content_type == "BASIC"
 
             outline_dict = generate_outline(
                 article.title,
-                (
-                    2
-                    if article.content_type == "PRODUCT_COMPARISON"
-                    else sections_ammount
-                ),
+                min_sections_count, 
+                max_sections_count,
                 article.topic,
                 article.category,
                 additional_data,
@@ -168,12 +168,15 @@ def create_articles_base(
                 article.content_type,
             )
             sections = outline_dict["outline"]
+            sections_ammount = len(outline_dict["outline"])
 
-            if article.content_type == "PRODUCT_COMPARISON":
-                sections = (
-                    [sections[0]] + [p.short_name for p in products] + [sections[-1]]
-                )
-                products = [None] + list(products) + [None]
+            products = [None] * sections_ammount
+
+            # if article.content_type == "PRODUCT_COMPARISON":
+            #     sections = (
+            #         [sections[0]] + [p.short_name for p in products] + [sections[-1]]
+            #     )
+            #     products = [None] + list(products) + [None]
 
             available_linking_articles_count = (
                 Article.select().where(Article.collection <= article.collection).count()
