@@ -26,10 +26,7 @@ def replace_urls_in_markdown(input_string, new_url):
         else:
             return "[{}]({})".format(match.group(1), new_url)
 
-    try:
-        replaced_string = re.sub(LINK_PATTERN, replace_func, input_string)
-    except:
-        print(input_string)
+    replaced_string = re.sub(LINK_PATTERN, replace_func, input_string)
 
     return replaced_string
 

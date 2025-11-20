@@ -1,4 +1,5 @@
 import requests
+from requests.auth import HTTPBasicAuth
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from settings.settings import settings
 from settings.logger import logger
@@ -8,7 +9,7 @@ from upload.utils import create_image_tag
 
 def create_session():
     session = requests.Session()
-    session.auth = (settings.WP_USER, settings.WP_APPLICATION_PASSWORD)
+    session.auth = HTTPBasicAuth(settings.WP_USER, settings.WP_APPLICATION_PASSWORD)
     return session
 
 

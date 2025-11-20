@@ -88,5 +88,7 @@ def json_llm_completion(
             logger.error("failed json completion input: " + str(completion))
             if tries_count == settings.INVALID_JSON_TRIES:
                 if throw_exception:
-                    raise Exception("failed json completion")
+                    raise Exception(
+                        "failed json completion after retries, start the generation again or increase the INVALID_JSON_TRIES"
+                    )
                 return dict_completion, all_usages

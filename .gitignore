@@ -9,3 +9,7 @@ vectors
 config.json
 test_configs
 articles.csv
+build
+dist
+*.spec
+__pycache__/

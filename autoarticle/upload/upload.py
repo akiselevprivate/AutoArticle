@@ -45,6 +45,11 @@ def create_section_markdown(section: Section):
 
     section_markdown = section.markdown
 
+    if not section.markdown:
+        raise Exception(
+            "Article section is empty, increase the MAX_SECTION_RETRIES is the env file or try regenerating the article."
+        )
+
     if section.include_link:
         linking_article_slug = section.link.slug
         suffix = settings.SUFFIX_URL + "/" if settings.SUFFIX_URL else ""

@@ -149,4 +149,9 @@ Never add link separately.
     logger.error(str(generated_anchors))
     logger.error("Retried section multiple times.")
 
+    if not section_md:
+        raise Exception(
+            "Article section generation failed, increase the MAX_SECTION_RETRIES in env file or start the generationg again."
+        )
+
     return section_md, generated_anchors

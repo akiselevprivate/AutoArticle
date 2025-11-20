@@ -5,7 +5,7 @@ A cli tool for creating AI articles with interlinking, image generation, product
 # How to Use
 
 ```
-python autoarticle create config articles.csv "[[30, 1], [1, 20]]" # a 2d list of [number of articles, days]
+python autoarticle create config articles.csv "[[30, 1], [1, 20]]" # a 2d list of [number of articles, days] eg. i want [x articles, for n days]
 
 python autoarticle create collections config.json (-ot for only titles, saved in titles.txt)
 
@@ -19,3 +19,13 @@ python autoarticle upload schedule (#of starting collection eg. 2) starting_date
 
 python autoarticle upload collection (#of collection)
 ```
+
+Install Basic Auth for your wp instance first
+
+# Guide
+
+1. create config
+2. create collections
+3. generate articles
+4. upload shuffle 1st collection
+5. upload schedule 2nd collection
